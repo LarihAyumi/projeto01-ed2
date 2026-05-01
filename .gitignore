@@ -1,0 +1,9 @@
+#Arquivos do hashfile (gerados automaticamente)
+*.hf
+*.hfc
+
+#Executáveis
+*.exe
+
+#Arquivos temporários
+*.o
