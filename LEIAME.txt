@@ -1,0 +1,17 @@
+Primeiro projeto de Estrutura de Dados II
+Sistema de Informação Geográfica simplificado (SIG).
+
+Funcionalidades
+ .geo para a manipulação de quadras; 
+ .pm para o cadastro de habitantes e moradores; 
+ .qry para a Consultas e atualizações;
+ .hf e .hfc Armazenamento em hashfile extensível com persistência em disco 
+
+Estrutura
+- `hashfile`: implementação de hash extensível com armazenamento em disco
+- `quadra`: representação das quadras da cidade
+- `pessoa`: habitantes e moradores
+
+Para compilar no windows com Mingw
+```bash
+mingw32-make
