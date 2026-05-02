@@ -1,6 +1,7 @@
 #ifndef QUADRA_H
 #define QUADRA_H
 #include <stdio.h>
+#include <stddef.h>
 
 /** Módulo responsável pela criação e armazenamento de quadras.
  *  As quadras são representadas internamente e podem ser salvas em arquivo binário.
@@ -8,6 +9,11 @@
 
 //Struct da quadra
 typedef struct Quadra Quadra;
+
+/** Retorna o tamanho, em bytes, da estrutura Quadra
+ * @return Tamanho da estrutura Quadra
+ */
+size_t getQuadraSize(void);
 
 /** Cria uma quadra
  * @param cep Identificador da quadra

@@ -8,6 +8,10 @@ struct Quadra {
     double x, y, w, h;
 };
 
+size_t getQuadraSize(void) {
+    return sizeof(Quadra);
+}
+
 Quadra* createQuadra(const char* cep, double x, double y, double w, double h) {
     Quadra* q = malloc(sizeof(Quadra));
 

@@ -22,6 +22,9 @@ persist:
 	./test_persist
 
 clean:
-	rm -f prog test_hash test_svg test_persist *.hf *.hfc *.svg *.hfd
+	del /Q prog.exe test_hash.exe test_svg.exe test_persist.exe *.hf *.hfc *.svg *.hfd *.dat 2>nul
+
+clean-linux:
+	rm -f prog test_hash test_svg test_persist *.hf *.hfc *.svg *.hfd *.dat
 
 tudo: all run test

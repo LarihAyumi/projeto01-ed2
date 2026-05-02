@@ -3,16 +3,19 @@
 #include <string.h>
 
 #define BUCKET_SIZE 2
+#define KEY_SIZE 64
+#define MAX_RECORD_SIZE 512
 
 typedef struct {
-    int keys[BUCKET_SIZE];
-    int values[BUCKET_SIZE];
+    char keys[BUCKET_SIZE][KEY_SIZE];
+    unsigned char records[BUCKET_SIZE][MAX_RECORD_SIZE];
     int count;
     int localDepth;
 } Bucket;
 
 typedef struct {
     int globalDepth;
+    size_t recordSize;
 } Header;
 
 struct HashFile {
@@ -21,10 +24,17 @@ struct HashFile {
 
     int globalDepth;
     long* directory;
+    size_t recordSize;
 };
 
-int hash(int key, int depth) {
-    return key & ((1 << depth) - 1);
+int hashString(const char* key, int depth) {
+    unsigned long h = 5381;
+
+    for (int i = 0; key[i] != '\0'; i++) {
+        h = ((h << 5) + h) + (unsigned char) key[i];
+    }
+
+    return h & ((1 << depth) - 1);
 }
 
 Bucket createBucket(int depth) {
@@ -49,15 +59,24 @@ void readBucket(HashFile* h, long pos, Bucket* b) {
 void saveHeader(HashFile* h) {
     rewind(h->hfc);
 
-    Header head = { h->globalDepth };
+    Header head = { h->globalDepth, h->recordSize };
     fwrite(&head, sizeof(Header), 1, h->hfc);
 
     int size = 1 << h->globalDepth;
     fwrite(h->directory, sizeof(long), size, h->hfc);
 }
 
-HashFile* createFile(const char* name) {
+HashFile* createFile(const char* name, size_t recordSize) {
+    if (recordSize > MAX_RECORD_SIZE) {
+        return NULL;
+    }
+
     HashFile* h = malloc(sizeof(HashFile));
+    if (!h) {
+        return NULL;
+    }
+    
+    h->recordSize = recordSize;
 
     char hfName[50], hfcName[50];
     sprintf(hfName, "%s.hf", name);
@@ -66,10 +85,23 @@ HashFile* createFile(const char* name) {
     h->hf = fopen(hfName, "wb+");
     h->hfc = fopen(hfcName, "wb+");
 
+    if (!h->hf || !h->hfc) {
+        if (h->hf) fclose(h->hf);
+        if (h->hfc) fclose(h->hfc);
+        free(h);
+        return NULL;
+    }
+
     h->globalDepth = 1;
     int size = 2;
-
     h->directory = malloc(size * sizeof(long));
+
+    if (!h->directory) {
+        fclose(h->hf);
+        fclose(h->hfc);
+        free(h);
+        return NULL;
+    }
 
     Bucket b0 = createBucket(1);
     Bucket b1 = createBucket(1);
@@ -95,6 +127,7 @@ HashFile* openFile(const char* name) {
     fread(&head, sizeof(Header), 1, h->hfc);
 
     h->globalDepth = head.globalDepth;
+    h->recordSize = head.recordSize;
 
     int size = 1 << h->globalDepth;
     h->directory = malloc(size * sizeof(long));
@@ -116,6 +149,35 @@ void doubleDirectory(HashFile* h) {
 
     h->globalDepth++;
 }
+
+
+int insertRegister(HashFile* h, const char* key, const void* record) {
+    int index = hashString(key, h->globalDepth);
+    
+    Bucket b;
+    long pos = h->directory[index];
+
+    readBucket(h, pos, &b);
+
+    if (b.count < BUCKET_SIZE) {
+        strncpy(b.keys[b.count], key, KEY_SIZE - 1);
+        b.keys[b.count][KEY_SIZE - 1] = '\0';
+
+        memcpy(b.records[b.count], record, h->recordSize);
+
+        b.count++;
+   
+
+        fseek(h->hf, pos, SEEK_SET);
+        fwrite(&b, sizeof(Bucket), 1, h->hf);
+
+        return 0;
+    }
+
+    splitBucket(h, index);
+    return insertRegister(h, key, record);
+}
+
 
 void splitBucket(HashFile* h, int index) {
     long oldPos = h->directory[index];
@@ -141,65 +203,44 @@ void splitBucket(HashFile* h, int index) {
         }
     }
 
-    int tempKeys[BUCKET_SIZE];
-    int tempValues[BUCKET_SIZE];
+    char tempKeys[BUCKET_SIZE][KEY_SIZE];
+    unsigned char tempRecords[BUCKET_SIZE][MAX_RECORD_SIZE];
     int count = old.count;
 
+    // copiar dados antigos
     for (int i = 0; i < count; i++) {
-        tempKeys[i] = old.keys[i];
-        tempValues[i] = old.values[i];
+        strcpy(tempKeys[i], old.keys[i]);
+        memcpy(tempRecords[i], old.records[i], h->recordSize);
     }
 
+    // limpa bucket antigo
     old.count = 0;
     fseek(h->hf, oldPos, SEEK_SET);
     fwrite(&old, sizeof(Bucket), 1, h->hf);
 
+    // reinsere corretamente
     for (int i = 0; i < count; i++) {
-        insertRegister(h, tempKeys[i], tempValues[i]);
+        insertRegister(h, tempKeys[i], tempRecords[i]);
     }
 }
 
-int insertRegister(HashFile* h, int key, int value) {
-    int index = hash(key, h->globalDepth);
-
-    Bucket b;
-    long pos = h->directory[index];
-
-    readBucket(h, pos, &b);
-
-    if (b.count < BUCKET_SIZE) {
-        b.keys[b.count] = key;
-        b.values[b.count] = value;
-        b.count++;
-
-        fseek(h->hf, pos, SEEK_SET);
-        fwrite(&b, sizeof(Bucket), 1, h->hf);
-
-        return 0;
-    }
-
-    splitBucket(h, index);
-    return insertRegister(h, key, value);
-}
-
-int searchRegister(HashFile* h, int key, int* value) {
-    int index = hash(key, h->globalDepth);
+int searchRegister(HashFile* h, const char* key, void* outRecord) {
+    int index = hashString(key, h->globalDepth);
 
     Bucket b;
     readBucket(h, h->directory[index], &b);
 
     for (int i = 0; i < b.count; i++) {
-        if (b.keys[i] == key) {
-            *value = b.values[i];
+        if (strcmp(b.keys[i], key) == 0) {
+            memcpy(outRecord, b.records[i], h->recordSize);
             return 0;
         }
     }
-
     return -1;
 }
 
-int removeRegister(HashFile* h, int key) {
-    int index = hash(key, h->globalDepth);
+int removeRegister(HashFile* h, const char* key) {
+    int index = hashString(key, h->globalDepth);
 
     Bucket b;
     long pos = h->directory[index];
@@ -207,9 +248,9 @@ int removeRegister(HashFile* h, int key) {
     readBucket(h, pos, &b);
 
     for (int i = 0; i < b.count; i++) {
-        if (b.keys[i] == key) {
-            b.keys[i] = b.keys[b.count - 1];
-            b.values[i] = b.values[b.count - 1];
+        if (strcmp(b.keys[i], key) == 0) {
+            strcpy(b.keys[i], b.keys[b.count - 1]);
+            memcpy(b.records[i], b.records[b.count - 1], h->recordSize);
             b.count--;
 
             fseek(h->hf, pos, SEEK_SET);
@@ -236,14 +277,14 @@ void generateHFD(HashFile* h, const char* filename) {
 
     int size = 1 << h->globalDepth;
 
-    //Diretório
+    // Diretório
     fprintf(out, "DIRECTORY:\n");
-    for (int i = 0; i < size; i++) {
-        fprintf(out, "[%d] -> Bucket @ %ld\n", i, h->directory[i]);
+        for (int i = 0; i < size; i++) {
+    fprintf(out, "[%d] -> Bucket @ %ld\n", i, h->directory[i]);
     }
 
+    // Mostra os buckets
     fprintf(out, "\nBUCKETS:\n");
-
     //Pra nao ter bucket repetido
     for (int i = 0; i < size; i++) {
         long pos = h->directory[i];
@@ -266,7 +307,7 @@ void generateHFD(HashFile* h, const char* filename) {
         fprintf(out, "Count: %d\n", b.count);
 
         for (int k = 0; k < b.count; k++) {
-            fprintf(out, "  (%d -> %d)\n", b.keys[k], b.values[k]);
+            fprintf(out, "  key: %s\n", b.keys[k]);
         }
     }
 

@@ -6,18 +6,6 @@
 #include <string.h>
 
 
-int generateCepKey(const char* cep) {
-    int key = 0;
-
-    for (int i = 0; cep[i] != '\0'; i++) {
-        key = key * 31 + cep[i];
-    }
-
-    if (key < 0) key = -key;
-
-    return key;
-}
-
 void processGeo(const char* geoPath, const char* svgPath, HashFile* quadrasHash) {
     FILE* geo = fopen(geoPath, "r");
     FILE* svg = fopen(svgPath, "w");
@@ -55,16 +43,12 @@ void processGeo(const char* geoPath, const char* svgPath, HashFile* quadrasHash)
             //salva no hash
             if (quadrasHash != NULL) {
                 Quadra* q = createQuadra(cep, x, y, w, h);
-
-                long offset;
-                saveQuadra(q, quadrasFile, &offset);
-
-                int key = generateCepKey(cep);
-                insertRegister(quadrasHash, key, (int) offset);
+                insertRegister(quadrasHash, cep, q);
+                free(q);    
             }
         }
     }
-
+    
     endSVG(svg);
 
     fclose(quadrasFile);
