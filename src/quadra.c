@@ -29,3 +29,25 @@ void saveQuadra(Quadra* q, FILE* file, long* offset) {
     *offset = ftell(file);
     fwrite(q, sizeof(Quadra), 1, file);
 }
+
+
+//getters
+const char* getCepQuadra(Quadra* q) {
+    return q->cep;
+}
+
+double getXQuadra(Quadra* q) {
+    return q->x;
+}
+
+double getYQuadra(Quadra* q) {
+    return q->y;
+}
+
+double getWQuadra(Quadra* q) {
+    return q->w;
+}
+
+double getHQuadra(Quadra* q) {
+    return q->h;
+}

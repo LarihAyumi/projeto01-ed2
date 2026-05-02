@@ -32,4 +32,12 @@ Quadra* createQuadra(const char* cep, double x, double y, double w, double h);
  */
 void saveQuadra(Quadra* q, FILE* file, long* offset);
 
+
+//Getters
+const char* getCepQuadra(Quadra* q);
+double getXQuadra(Quadra* q);
+double getYQuadra(Quadra* q);
+double getWQuadra(Quadra* q);
+double getHQuadra(Quadra* q);
+
 #endif
