@@ -66,6 +66,7 @@ void saveHeader(HashFile* h) {
     fwrite(h->directory, sizeof(long), size, h->hfc);
 }
 
+
 HashFile* createFile(const char* name, size_t recordSize) {
     if (recordSize > MAX_RECORD_SIZE) {
         return NULL;
@@ -116,6 +117,7 @@ HashFile* createFile(const char* name, size_t recordSize) {
     free(hfcName);
     return h;
 }
+
 
 HashFile* openFile(const char* name) {
     HashFile* h = malloc(sizeof(HashFile));
@@ -248,6 +250,8 @@ void splitBucket(HashFile* h, int index) {
     }
 }
 
+
+
 int searchRegister(HashFile* h, const char* key, void* outRecord) {
     int index = hashString(key, h->globalDepth);
 
@@ -262,6 +266,8 @@ int searchRegister(HashFile* h, const char* key, void* outRecord) {
     }
     return -1;
 }
+
+
 
 int removeRegister(HashFile* h, const char* key) {
     int index = hashString(key, h->globalDepth);
@@ -286,6 +292,8 @@ int removeRegister(HashFile* h, const char* key) {
 
     return -1;
 }
+
+
 
 void generateHFD(HashFile* h, const char* filename) {
     FILE* out = fopen(filename, "w");
@@ -340,6 +348,7 @@ void generateHFD(HashFile* h, const char* filename) {
     fclose(out);
 }
 
+
 void closeFile(HashFile* h) {
     saveHeader(h);
 
@@ -350,4 +359,30 @@ void closeFile(HashFile* h) {
 
     free(h->directory);
     free(h);
+}
+
+
+void scanRegisters(HashFile* h, HashScanCallback callback, void* extra) {
+    int size = 1 << h->globalDepth;
+
+    for (int i = 0; i < size; i++) {
+        long pos = h->directory[i];
+
+        int repetido = 0;
+        for (int j = 0; j < i; j++) {
+            if (h->directory[j] == pos) {
+                repetido = 1;
+                break;
+            }
+        }
+
+        if (repetido) continue;
+
+        Bucket b;
+        readBucket(h, pos, &b);
+
+        for (int k = 0; k < b.count; k++) {
+            callback(b.keys[k], b.records[k], extra);
+        }
+    }
 }

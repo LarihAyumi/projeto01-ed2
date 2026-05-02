@@ -75,4 +75,20 @@ void generateHFD(HashFile* h, const char* filename);
  */
 void closeFile(HashFile* file);
 
+/** Callback pra fazer a varredura do hashfile
+ * @param key Chave associada ao registro encontrado
+ * @param record Ponteiro para o registro armazenado
+ * @param extra Ponteiro auxiliar passado pelo usuário para guardar contexto
+ */
+typedef void (*HashScanCallback)(const char* key, void* record, void* extra);
+
+/** Percorre todos os registros válidos armazenados no hashfile
+ *  - Cada registro é enviado para a função callback informada.
+ *  - Buckets repetidos no diretório são ignorados para evitar visitar o mesmo registro mais de uma vez.
+ * @param h Hashfile a ser percorrido
+ * @param callback Função chamada para cada registro encontrado
+ * @param extra Ponteiro auxiliar repassado ao callback
+ */
+void scanRegisters(HashFile* h, HashScanCallback callback, void* extra);
+
 #endif 

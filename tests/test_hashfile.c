@@ -11,6 +11,23 @@ void tearDown(void) {
     remove("teste_hash_persist.hf");
     remove("teste_hash_persist.hfc");
     remove("saida.hfd");
+    remove("teste_hash_scan.hf");
+    remove("teste_hash_scan.hfc");
+}
+
+typedef struct {
+    int quantidade;
+    int soma;
+} ScanContext;
+
+void contarRegistrosCallback(const char* key, void* record, void* extra) {
+    (void) key;
+
+    ScanContext* ctx = (ScanContext*) extra;
+    int* valor = (int*) record;
+
+    ctx->quantidade++;
+    ctx->soma += *valor;
 }
 
 void testCreateFile(void) {
@@ -134,6 +151,28 @@ void testSplitBucket(void) {
     closeFile(hf);
 }
 
+void testScanRegistradores(void) {
+    HashFile* hf = createFile("teste_hash_scan", sizeof(int));
+    TEST_ASSERT_NOT_NULL(hf);
+
+    int v1 = 10, v2 = 20, v3 = 30, v4 = 40;
+
+    TEST_ASSERT_EQUAL_INT(0, insertRegister(hf, "a", &v1));
+    TEST_ASSERT_EQUAL_INT(0, insertRegister(hf, "b", &v2));
+    TEST_ASSERT_EQUAL_INT(0, insertRegister(hf, "c", &v3));
+    TEST_ASSERT_EQUAL_INT(0, insertRegister(hf, "d", &v4));
+
+    ScanContext ctx;
+    ctx.quantidade = 0;
+    ctx.soma = 0;
+
+    scanRegisters(hf, contarRegistrosCallback, &ctx);
+
+    TEST_ASSERT_EQUAL_INT(4, ctx.quantidade);
+    TEST_ASSERT_EQUAL_INT(100, ctx.soma);
+
+    closeFile(hf);
+}
 
 
 int main(void) {
@@ -146,6 +185,7 @@ int main(void) {
     RUN_TEST(testSearchRegister);
     RUN_TEST(testPersistencia);
     RUN_TEST(testSplitBucket);
+    RUN_TEST(testScanRegistradores);
 
     return UNITY_END();
 }
