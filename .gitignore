@@ -1,6 +1,10 @@
 #Arquivos do hashfile (gerados automaticamente)
 *.hf
 *.hfc
+*.hfd
+
+#Arquivos de saída 
+*.svg
 
 #Executáveis
 *.exe
