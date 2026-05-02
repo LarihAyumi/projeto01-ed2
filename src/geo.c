@@ -40,11 +40,10 @@ void processGeo(const char* geoPath, const char* svgPath, HashFile* quadrasHash)
             //desenha no SVG
             drawQuadra(svg, cep, x, y, w, h, cfill, cstrk, sw);
 
-            //salva no hash
             if (quadrasHash != NULL) {
                 Quadra* q = createQuadra(cep, x, y, w, h);
                 insertRegister(quadrasHash, cep, q);
-                free(q);    
+                free(q);
             }
         }
     }
