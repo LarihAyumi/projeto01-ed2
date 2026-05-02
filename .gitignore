@@ -5,6 +5,7 @@
 
 #Arquivos de saída 
 *.svg
+*.dat
 
 #Executáveis
 *.exe

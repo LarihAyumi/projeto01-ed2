@@ -1,8 +1,10 @@
 #include "../include/geo.h"
 #include "../include/svg.h"
+#include "../include/quadra.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 
 int generateCepKey(const char* cep) {
     int key = 0;
@@ -19,8 +21,9 @@ int generateCepKey(const char* cep) {
 void processGeo(const char* geoPath, const char* svgPath, HashFile* quadrasHash) {
     FILE* geo = fopen(geoPath, "r");
     FILE* svg = fopen(svgPath, "w");
+    FILE* quadrasFile = fopen("quadras.dat", "ab+");
 
-    if (!geo || !svg) {
+    if (!geo || !svg || !quadrasFile) {
         printf("Erro ao abrir arquivos\n");
         return;
     }
@@ -51,14 +54,20 @@ void processGeo(const char* geoPath, const char* svgPath, HashFile* quadrasHash)
 
             //salva no hash
             if (quadrasHash != NULL) {
+                Quadra* q = createQuadra(cep, x, y, w, h);
+
+                long offset;
+                saveQuadra(q, quadrasFile, &offset);
+
                 int key = generateCepKey(cep);
-                insertRegister(quadrasHash, key, 1);
+                insertRegister(quadrasHash, key, (int) offset);
             }
         }
     }
 
     endSVG(svg);
 
+    fclose(quadrasFile);
     fclose(geo);
     fclose(svg);
 }

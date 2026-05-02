@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -fstack-protector-all
 
-SRC = src/hashfile.c src/svg.c src/geo.c
+SRC = src/hashfile.c src/svg.c src/geo.c src/quadra.c
 INCLUDE = -Iinclude
 
 all:
