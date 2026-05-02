@@ -78,7 +78,9 @@ HashFile* createFile(const char* name, size_t recordSize) {
     
     h->recordSize = recordSize;
 
-    char hfName[50], hfcName[50];
+    char *hfName = malloc(strlen(name) + 4);
+    char *hfcName = malloc(strlen(name) + 5);
+
     sprintf(hfName, "%s.hf", name);
     sprintf(hfcName, "%s.hfc", name);
 
@@ -110,13 +112,16 @@ HashFile* createFile(const char* name, size_t recordSize) {
     h->directory[1] = writeBucket(h, &b1);
 
     saveHeader(h);
+    free(hfName);
+    free(hfcName);
     return h;
 }
 
 HashFile* openFile(const char* name) {
     HashFile* h = malloc(sizeof(HashFile));
 
-    char hfName[50], hfcName[50];
+    char *hfName = malloc(strlen(name) + 4);
+    char *hfcName = malloc(strlen(name) + 5);
     sprintf(hfName, "%s.hf", name);
     sprintf(hfcName, "%s.hfc", name);
 
@@ -125,6 +130,12 @@ HashFile* openFile(const char* name) {
 
     Header head;
     fread(&head, sizeof(Header), 1, h->hfc);
+    if (!h->hf || !h->hfc) {
+        if (h->hf) fclose(h->hf);
+        if (h->hfc) fclose(h->hfc);
+        free(h);
+        return NULL;
+    }
 
     h->globalDepth = head.globalDepth;
     h->recordSize = head.recordSize;
@@ -134,6 +145,8 @@ HashFile* openFile(const char* name) {
 
     fread(h->directory, sizeof(long), size, h->hfc);
 
+    free(hfName);
+    free(hfcName);
     return h;
 }
 
@@ -158,6 +171,17 @@ int insertRegister(HashFile* h, const char* key, const void* record) {
     long pos = h->directory[index];
 
     readBucket(h, pos, &b);
+
+    for (int i = 0; i < b.count; i++) {
+        if (strcmp(b.keys[i], key) == 0) {
+            memcpy(b.records[i], record, h->recordSize);
+
+            fseek(h->hf, pos, SEEK_SET);
+            fwrite(&b, sizeof(Bucket), 1, h->hf);
+
+            return 0;
+        }
+    }
 
     if (b.count < BUCKET_SIZE) {
         strncpy(b.keys[b.count], key, KEY_SIZE - 1);
