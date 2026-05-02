@@ -10,7 +10,7 @@ void setUp(void) {
     FILE* qry = fopen("teste.qry", "w");
     TEST_ASSERT_NOT_NULL(qry);
 
-    fprintf(qry, "h? 000.000.001-91\n");
+    fprintf(qry, "h? 800.577.369-28\n");
 
     fclose(qry);
 }
@@ -18,20 +18,22 @@ void setUp(void) {
 void tearDown(void) {
     remove("teste.qry");
     remove("teste.txt");
+    remove("teste.svg");
     remove("teste_qry_hash.hf");
     remove("teste_qry_hash.hfc");
+    remove("saida.hfd");
 }
 
-void testHQuery(void) {
+void testH(void) {
     HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
     TEST_ASSERT_NOT_NULL(pessoasHash);
 
     Pessoa* p = createPessoa(
-        "000.000.001-91",
-        "Teste",
-        "Pessoa",
+        "800.577.369-28",
+        "Larissa",
+        "Costa",
         'F',
-        "01/01/2000"
+        "26/08/2004"
     );
 
     insertRegister(pessoasHash, getCpf(p), p);
@@ -52,18 +54,51 @@ void testHQuery(void) {
     TEST_ASSERT_NOT_NULL(txt);
 
     char buffer[200];
-    fgets(buffer, sizeof(buffer), txt);
 
-    TEST_ASSERT_NOT_NULL(strstr(buffer, "Teste"));
+    TEST_ASSERT_NOT_NULL(fgets(buffer, sizeof(buffer), txt));
+    TEST_ASSERT_NOT_NULL(strstr(buffer, "Larissa"));
+    TEST_ASSERT_NOT_NULL(strstr(buffer, "Costa"));
 
     fclose(txt);
+    closeFile(pessoasHash);
+}
+
+void testNasc(void) {
+    FILE* qry = fopen("teste.qry", "w");
+    TEST_ASSERT_NOT_NULL(qry);
+
+    fprintf(qry, "nasc 123 Teste Larissa F 26/08/2004\n");
+
+    fclose(qry);
+
+    HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
+    TEST_ASSERT_NOT_NULL(pessoasHash);
+
+    FILE* txt = fopen("teste.txt", "w");
+    FILE* svg = fopen("teste.svg", "w");
+
+    processQry("teste.qry", pessoasHash, NULL, txt, svg);
+
+    fclose(txt);
+    fclose(svg);
+
+    // pra verificar se a pessoa foi inserida
+    Pessoa* p = malloc(getPessoaSize());
+
+    int res = searchRegister(pessoasHash, "123", p);
+
+    TEST_ASSERT_EQUAL_INT(0, res);
+    TEST_ASSERT_EQUAL_STRING("Teste", getNome(p));
+
+    free(p);
     closeFile(pessoasHash);
 }
 
 int main(void) {
     UNITY_BEGIN();
 
-    RUN_TEST(testHQuery);
+    RUN_TEST(testH);
+    RUN_TEST(testNasc);
 
     return UNITY_END();
 }

@@ -40,7 +40,15 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
         }
 
         else if (strcmp(comando, "nasc") == 0) {
+            char cpf[20], nome[50], sobrenome[50], nasc[11];
+            char sexo;
 
+            fscanf(qry, "%s %s %s %c %s", cpf, nome, sobrenome, &sexo, nasc);
+            Pessoa* p = createPessoa(cpf, nome, sobrenome, sexo, nasc);
+            
+            insertRegister(pessoasHash, cpf, p);
+
+            free(p);
         }
 
         else if (strcmp(comando, "rip") == 0) {
