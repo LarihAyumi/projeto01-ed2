@@ -45,8 +45,14 @@ int searchRegister(HashFile* file, int key, int* value);
  */
 int removeRegister(HashFile* file, int key);
 
-/** Fecha o arquivo
- * @param file Estrutura
+/** Gera arquivo HFD com a representação do hashfile
+ * @param h estrutura do hashfile
+ * @param filename nome do arquivo que será gerado hfd
+ */
+void generateHFD(HashFile* h, const char* filename);
+
+/** Fecha o hashfile, salva o cabeçalho e libera a memória
+ * @param file estrutura do hashfile
  */
 void closeFile(HashFile* file);
 

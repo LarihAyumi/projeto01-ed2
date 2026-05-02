@@ -6,12 +6,14 @@ Funcionalidades
  .pm para o cadastro de habitantes e moradores; 
  .qry para a Consultas e atualizações;
  .hf e .hfc Armazenamento em hashfile extensível com persistência em disco 
+ .hfd sendo gerado para representação legível do hashfile
 
 Estrutura
-- `hashfile`: implementação de hash extensível com armazenamento em disco
-- `quadra`: representação das quadras da cidade
-- `pessoa`: habitantes e moradores
+- hashfile: implementação do hash extensível em disco;
+- svg: geração do arquivo SVG da cidade;
+- geo: leitura e processamento do arquivo .geo;
+- quadra: representação das quadras da cidade;
+- pessoa: representação de habitantes e moradores.
 
-Para compilar no windows com Mingw
-```bash
-mingw32-make
+Para compilar, rodar o programa e os testes no windows com Mingw:
+mingw32-make tudo

@@ -1,0 +1,28 @@
+===== HASHFILE DUMP =====
+
+Global Depth: 2
+
+DIRECTORY:
+[0] -> Bucket @ 0
+[1] -> Bucket @ 24
+[2] -> Bucket @ 48
+[3] -> Bucket @ 24
+
+BUCKETS:
+
+Bucket @ 0
+Local Depth: 2
+Count: 1
+  (40 -> 400)
+
+Bucket @ 24
+Local Depth: 1
+Count: 0
+
+Bucket @ 48
+Local Depth: 2
+Count: 2
+  (10 -> 100)
+  (30 -> 300)
+
+=========================

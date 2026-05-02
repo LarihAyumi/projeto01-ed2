@@ -17,7 +17,7 @@ typedef struct {
 
 struct HashFile {
     FILE* hf;   // buckets
-    FILE* hfc;  // header + directory
+    FILE* hfc;  // cabeçalho + diretorio
 
     int globalDepth;
     long* directory;
@@ -222,8 +222,63 @@ int removeRegister(HashFile* h, int key) {
     return -1;
 }
 
+void generateHFD(HashFile* h, const char* filename) {
+    FILE* out = fopen(filename, "w");
+
+    if (!out) {
+        printf("Erro ao criar .hfd\n");
+        return;
+    }
+
+    fprintf(out, "===== HASHFILE DUMP =====\n\n");
+
+    fprintf(out, "Global Depth: %d\n\n", h->globalDepth);
+
+    int size = 1 << h->globalDepth;
+
+    //Diretório
+    fprintf(out, "DIRECTORY:\n");
+    for (int i = 0; i < size; i++) {
+        fprintf(out, "[%d] -> Bucket @ %ld\n", i, h->directory[i]);
+    }
+
+    fprintf(out, "\nBUCKETS:\n");
+
+    //Pra nao ter bucket repetido
+    for (int i = 0; i < size; i++) {
+        long pos = h->directory[i];
+
+        int alreadyPrinted = 0;
+        for (int j = 0; j < i; j++) {
+            if (h->directory[j] == pos) {
+                alreadyPrinted = 1;
+                break;
+            }
+        }
+
+        if (alreadyPrinted) continue;
+
+        Bucket b;
+        readBucket(h, pos, &b);
+
+        fprintf(out, "\nBucket @ %ld\n", pos);
+        fprintf(out, "Local Depth: %d\n", b.localDepth);
+        fprintf(out, "Count: %d\n", b.count);
+
+        for (int k = 0; k < b.count; k++) {
+            fprintf(out, "  (%d -> %d)\n", b.keys[k], b.values[k]);
+        }
+    }
+
+    fprintf(out, "\n=========================\n");
+
+    fclose(out);
+}
+
 void closeFile(HashFile* h) {
     saveHeader(h);
+
+    generateHFD(h, "saida.hfd");
 
     fclose(h->hf);
     fclose(h->hfc);
