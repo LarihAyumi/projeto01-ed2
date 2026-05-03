@@ -142,12 +142,52 @@ void testRip(void) {
     closeFile(pessoasHash);
 }
 
+void testMud(void) {
+    FILE* qry = fopen("teste.qry", "w");
+    TEST_ASSERT_NOT_NULL(qry);
+
+    fprintf(qry, "mud 800.577.369-28 cep1 S 50 casa\n");
+
+    fclose(qry);
+
+    HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
+    TEST_ASSERT_NOT_NULL(pessoasHash);
+
+    Pessoa* p = createPessoa("800.577.369-28", "Larissa", "Costa", 'F',"26/08/2004");
+
+    insertRegister(pessoasHash, getCpf(p), p);
+    free(p);
+
+    FILE* txt = fopen("teste.txt", "w");
+    FILE* svg = fopen("teste.svg", "w");
+
+    processQry("teste.qry", pessoasHash, NULL, txt, svg);
+
+    fclose(txt);
+    fclose(svg);
+
+    Pessoa* resultado = malloc(getPessoaSize());
+    TEST_ASSERT_NOT_NULL(resultado);
+
+    TEST_ASSERT_EQUAL_INT(0, searchRegister(pessoasHash, "800.577.369-28", resultado));
+
+    TEST_ASSERT_TRUE(pessoaTemMoradia(resultado));
+    TEST_ASSERT_EQUAL_STRING("cep1", getCepMoradia(resultado));
+    TEST_ASSERT_EQUAL_CHAR('S', getFaceMoradia(resultado));
+    TEST_ASSERT_EQUAL_INT(50, getNumMoradia(resultado));
+    TEST_ASSERT_EQUAL_STRING("casa", getCompMoradia(resultado));
+
+    free(resultado);
+    closeFile(pessoasHash);
+}
+
 int main(void) {
     UNITY_BEGIN();
 
     RUN_TEST(testH);
     RUN_TEST(testNasc);
     RUN_TEST(testRip);
+    RUN_TEST(testMud);
 
     return UNITY_END();
 }

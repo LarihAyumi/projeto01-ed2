@@ -78,7 +78,19 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
         }
         
         else if (strcmp(comando, "mud") == 0) {
+            char cpf[20], cep[20], comp[50];
+            char face;
+            int num;
 
+            fscanf(qry, "%s %s %c %d %s", cpf, cep, &face, &num, comp);
+            Pessoa* p = malloc(getPessoaSize());
+
+            if (p && searchRegister(pessoasHash, cpf, p) == 0) {
+                setMoradia(p, cep, face, num, comp);
+                insertRegister(pessoasHash, cpf, p);
+            }
+
+            free(p);
         }
 
         else if (strcmp(comando, "dspj") == 0) {
