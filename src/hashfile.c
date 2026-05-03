@@ -145,6 +145,15 @@ HashFile* openFile(const char* name) {
     int size = 1 << h->globalDepth;
     h->directory = malloc(size * sizeof(long));
 
+    if (!h->hf || !h->hfc) {
+        if (h->hf) fclose(h->hf);
+        if (h->hfc) fclose(h->hfc);
+        free(hfName);
+        free(hfcName);
+        free(h);
+        return NULL;
+    }
+
     fread(h->directory, sizeof(long), size, h->hfc);
 
     free(hfName);
@@ -233,18 +242,18 @@ void splitBucket(HashFile* h, int index) {
     unsigned char tempRecords[BUCKET_SIZE][MAX_RECORD_SIZE];
     int count = old.count;
 
-    // copiar dados antigos
+    //copia os dados antigos
     for (int i = 0; i < count; i++) {
         strcpy(tempKeys[i], old.keys[i]);
         memcpy(tempRecords[i], old.records[i], h->recordSize);
     }
 
-    // limpa bucket antigo
+    // limpa o bucket antigo
     old.count = 0;
     fseek(h->hf, oldPos, SEEK_SET);
     fwrite(&old, sizeof(Bucket), 1, h->hf);
 
-    // reinsere corretamente
+    // e reinsere 
     for (int i = 0; i < count; i++) {
         insertRegister(h, tempKeys[i], tempRecords[i]);
     }
@@ -317,6 +326,7 @@ void generateHFD(HashFile* h, const char* filename) {
 
     // Mostra os buckets
     fprintf(out, "\nBUCKETS:\n");
+    
     //Pra nao ter bucket repetido
     for (int i = 0; i < size; i++) {
         long pos = h->directory[i];

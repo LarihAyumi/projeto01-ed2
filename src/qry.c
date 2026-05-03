@@ -11,6 +11,11 @@ typedef struct {
     FILE* txt;
 } RqContext;
 
+typedef struct {
+    char cep[20];
+    int N, S, L, O;
+} PqContext;
+
 static void rqCallback(const char* key, void* record, void* extra) {
     (void) key;
 
@@ -24,8 +29,23 @@ static void rqCallback(const char* key, void* record, void* extra) {
     }
 }
 
+static void pqCallback(const char* key, void* record, void* extra) {
+    (void) key;
+
+    PqContext* ctx = (PqContext*) extra;
+    Pessoa* p = (Pessoa*) record;
+
+    if (pessoaTemMoradia(p) && strcmp(getCepMoradia(p), ctx->cep) == 0) {
+        char face = getFaceMoradia(p);
+
+        if (face == 'N') ctx->N++;
+        else if (face == 'S') ctx->S++;
+        else if (face == 'L') ctx->L++;
+        else if (face == 'O') ctx->O++;
+    }
+}
+
 void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHash, FILE* txt, FILE* svg) {
-    (void) quadrasHash;
     (void) svg;
 
     FILE* qry = fopen(qryPath, "r");
@@ -41,7 +61,7 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
 
             removeRegister(quadrasHash, cep);
             RqContext ctx;
-            
+
             strcpy(ctx.cep, cep);
             ctx.pessoasHash = pessoasHash;
             ctx.txt = txt;
@@ -50,7 +70,22 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
         }
 
         else if (strcmp(comando, "pq") == 0) {
+            char cep[20];
+            fscanf(qry, "%s", cep);
 
+            PqContext ctx;
+            strcpy( ctx.cep, cep);
+            ctx.N = ctx.S = ctx.L = ctx.O = 0;
+
+            scanRegisters(pessoasHash, pqCallback, &ctx);
+
+            int total =ctx.N + ctx.S+ ctx.L + ctx.O;
+            fprintf(txt,"CEP: %s\n", cep);
+            fprintf(txt, "N: %d\n", ctx.N);
+            fprintf(txt, "S: %d\n", ctx.S);
+            fprintf(txt, "L: %d\n", ctx.L);
+            fprintf(txt, "O: %d\n", ctx.O);
+            fprintf(txt, "Total: %d\n", total);
         }
 
         else if (strcmp(comando, "censo") == 0) {
@@ -63,10 +98,9 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
 
             Pessoa* p = malloc(getPessoaSize());
 
-            if (searchRegister(pessoasHash, cpf, p) == 0) {
+            if (p && searchRegister( pessoasHash, cpf, p) == 0) {
                 fprintf(txt, "%s %s\n", getNome(p), getSobrenome(p));
             }
-
             free(p);
         }
 

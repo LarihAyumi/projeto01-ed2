@@ -39,13 +39,14 @@ void testRq(void) {
     TEST_ASSERT_NOT_NULL(pessoasHash);
     TEST_ASSERT_NOT_NULL(quadrasHash);
 
-    //cria quadra
+
     Quadra* q = createQuadra("cep1", 0, 0, 100, 100);
     insertRegister(quadrasHash, "cep1", q);
     free(q);
 
-    //cria morador
-    Pessoa* p = createPessoa("123", "Ana", "Silva", 'F', "01/01/2000");
+ 
+    
+    Pessoa* p = createPessoa("123", "Larissa", "Costa", 'F', "26/08/2004");
     setMoradia(p, "cep1", 'S', 10, "casa");
 
     insertRegister(pessoasHash, getCpf(p), p);
@@ -74,12 +75,75 @@ void testRq(void) {
     int encontrou = 0;
 
     while (fgets(buffer, sizeof(buffer), txt)) {
-        if (strstr(buffer, "Ana") != NULL) {
+        if (strstr(buffer, "Larissa") != NULL) {
             encontrou = 1;
         }
     }
 
     TEST_ASSERT_TRUE(encontrou);
+
+    fclose(txt);
+
+    closeFile(pessoasHash);
+    closeFile(quadrasHash);
+}
+
+void testPq(void) {
+    FILE* qry = fopen("teste.qry", "w");
+    TEST_ASSERT_NOT_NULL(qry);
+
+    fprintf(qry, "pq cep1\n");
+
+    fclose(qry);
+
+    HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
+    HashFile* quadrasHash = createFile("teste_quadras_hash", getQuadraSize());
+
+    TEST_ASSERT_NOT_NULL(pessoasHash);
+    TEST_ASSERT_NOT_NULL(quadrasHash);
+
+    //quadra
+    Quadra* q = createQuadra("cep1", 0, 0, 100, 100);
+    insertRegister(quadrasHash, "cep1", q);
+    free(q);
+
+    //pessoas
+    Pessoa* p1 = createPessoa("1", "A", "A", 'F', "01");
+    setMoradia(p1, "cep1", 'N', 10, "casa");
+
+    Pessoa* p2 = createPessoa("2", "B", "B", 'F', "01");
+    setMoradia(p2, "cep1", 'S', 10, "casa");
+
+    Pessoa* p3 = createPessoa("3", "C", "C", 'F', "01");
+    setMoradia(p3, "cep1", 'S', 10, "casa");
+
+    insertRegister(pessoasHash, "1", p1);
+    insertRegister(pessoasHash, "2", p2);
+    insertRegister(pessoasHash, "3", p3);
+
+    free(p1); free(p2); free(p3);
+
+    FILE* txt = fopen("teste.txt", "w");
+    FILE* svg = fopen("teste.svg", "w");
+
+    processQry("teste.qry", pessoasHash, quadrasHash, txt, svg);
+
+    fclose(txt);
+    fclose(svg);
+
+    txt = fopen("teste.txt", "r");
+    TEST_ASSERT_NOT_NULL(txt);
+
+    char buffer[200];
+    int encontrouTotal = 0;
+
+    while (fgets(buffer, sizeof(buffer), txt)) {
+        if (strstr(buffer, "Total: 3") != NULL) {
+            encontrouTotal = 1;
+        }
+    }
+
+    TEST_ASSERT_TRUE(encontrouTotal);
 
     fclose(txt);
 
@@ -308,6 +372,7 @@ int main(void) {
     UNITY_BEGIN();
 
     RUN_TEST(testRq);
+    RUN_TEST(testPq);
     RUN_TEST(testH);
     RUN_TEST(testNasc);
     RUN_TEST(testRip);
