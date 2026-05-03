@@ -181,6 +181,66 @@ void testMud(void) {
     closeFile(pessoasHash);
 }
 
+void testDspj(void) {
+    FILE* qry = fopen("teste.qry", "w");
+    TEST_ASSERT_NOT_NULL(qry);
+
+    fprintf(qry, "dspj 800.577.369-28\n");
+
+    fclose(qry);
+
+    HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
+    TEST_ASSERT_NOT_NULL(pessoasHash);
+
+    Pessoa* p = createPessoa("800.577.369-28", "Larissa", "Costa", 'F',"26/08/2004");
+
+    setMoradia(p, "cep1", 'S', 45, "casa");
+
+    insertRegister(pessoasHash, getCpf(p), p);
+    free(p);
+
+    FILE* txt = fopen("teste.txt", "w");
+    TEST_ASSERT_NOT_NULL(txt);
+
+    FILE* svg = fopen("teste.svg", "w");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    processQry("teste.qry", pessoasHash, NULL, txt, svg);
+
+    fclose(txt);
+    fclose(svg);
+
+    Pessoa* resultado = malloc(getPessoaSize());
+    TEST_ASSERT_NOT_NULL(resultado);
+
+    TEST_ASSERT_EQUAL_INT(0, searchRegister(pessoasHash, "800.577.369-28", resultado));
+    TEST_ASSERT_FALSE(pessoaTemMoradia(resultado));
+
+    free(resultado);
+
+    txt = fopen("teste.txt", "r");
+    TEST_ASSERT_NOT_NULL(txt);
+
+    char buffer[200];
+    int encontrouNome = 0;
+    int encontrouEndereco = 0;
+
+    while (fgets(buffer, sizeof(buffer), txt) != NULL) {
+        if (strstr(buffer, "Larissa") != NULL) {
+            encontrouNome = 1;
+        }
+        if (strstr(buffer, "cep1") != NULL) {
+            encontrouEndereco = 1;
+        }
+    }
+
+    TEST_ASSERT_TRUE(encontrouNome);
+    TEST_ASSERT_TRUE(encontrouEndereco);
+
+    fclose(txt);
+    closeFile(pessoasHash);
+}
+
 int main(void) {
     UNITY_BEGIN();
 
@@ -188,6 +248,7 @@ int main(void) {
     RUN_TEST(testNasc);
     RUN_TEST(testRip);
     RUN_TEST(testMud);
+    RUN_TEST(testDspj);
 
     return UNITY_END();
 }

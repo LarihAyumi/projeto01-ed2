@@ -65,11 +65,7 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
                 fprintf(txt, "Nascimento: %s\n", getNasc(p));
 
                 if (pessoaTemMoradia(p)) {
-                    fprintf(txt, "Endereco: %s/%c/%d/%s\n",
-                        getCepMoradia(p),
-                        getFaceMoradia(p),
-                        getNumMoradia(p),
-                        getCompMoradia(p));
+                    fprintf(txt, "Endereco: %s/%c/%d/%s\n", getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), getCompMoradia(p));
                 }
 
                 removeRegister(pessoasHash, cpf);
@@ -94,7 +90,24 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
         }
 
         else if (strcmp(comando, "dspj") == 0) {
+            char cpf[20];
 
+            fscanf(qry, "%s", cpf);
+            Pessoa* p = malloc(getPessoaSize());
+
+            if (p && searchRegister(pessoasHash, cpf, p) == 0) {
+                fprintf(txt, "CPF: %s\n", getCpf(p));
+                fprintf(txt, "Nome: %s %s\n", getNome(p), getSobrenome(p));
+                fprintf(txt, "Sexo: %c\n", getSexo(p));
+                fprintf(txt, "Nascimento: %s\n", getNasc(p));
+
+                if (pessoaTemMoradia(p)) {
+                    fprintf(txt, "Endereco do despejo: %s/%c/%d/%s\n", getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), getCompMoradia(p));
+                    removeMoradia(p);
+                    insertRegister(pessoasHash, cpf, p);
+                }
+            }
+            free(p);
         }
     }
 
