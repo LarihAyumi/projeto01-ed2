@@ -35,7 +35,7 @@ test:
 
 
 clean:
-	del /Q prog.exe test_hash.exe test_svg.exe test_pessoa.exe test_pm.exe test_quadra.exe test_geo.exe *.hf *.hfc *.svg *.hfd *.dat 2>nul
+	del /Q prog.exe test_hash.exe test_svg.exe test_pessoa.exe test_pm.exe test_quadra.exe test_geo.exe testeCENSO.txt *.hf *.hfc *.svg *.hfd *.dat 2>nul
 
 clean-linux:
 	rm -f prog test_hash test_svg test_pessoa.exe test_pm.exe test_geo.exe *.hf *.hfc *.svg *.hfd *.dat

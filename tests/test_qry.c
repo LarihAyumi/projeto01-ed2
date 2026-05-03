@@ -18,11 +18,33 @@ void setUp(void) {
 
 void tearDown(void) {
     remove("teste.qry");
-    remove("teste.txt");
-    remove("teste.svg");
     remove("teste_qry_hash.hf");
     remove("teste_qry_hash.hfc");
     remove("saida.hfd");
+
+    remove("testeRQ.txt");
+    remove("testeRQ.svg");
+
+    remove("testePQ.txt");
+    remove("testePQ.svg");
+
+    remove("testeCENSO.txt");
+    remove("testeCENSO.svg");
+
+    remove("testeDSPJ.txt");
+    remove("testeDSPJ.svg");
+
+    remove("testeH.txt");
+    remove("testeH.svg");
+
+    remove("testeMUD.txt");
+    remove("testeMUD.svg");
+
+    remove("testeNasc.txt");
+    remove("testeNasc.svg");
+
+    remove("testeRIP.txt");
+    remove("testeRIP.svg");
 }
 
 void testRq(void) {
@@ -52,8 +74,8 @@ void testRq(void) {
     insertRegister(pessoasHash, getCpf(p), p);
     free(p);
 
-    FILE* txt = fopen("teste.txt", "w");
-    FILE* svg = fopen("teste.svg", "w");
+    FILE* txt = fopen("testeRQ.txt", "w");
+    FILE* svg = fopen("testeRQ.svg", "w");
 
     processQry("teste.qry", pessoasHash, quadrasHash, txt, svg);
 
@@ -68,7 +90,7 @@ void testRq(void) {
 
     free(res);
 
-    txt = fopen("teste.txt", "r");
+    txt = fopen("testeRQ.txt", "r");
     TEST_ASSERT_NOT_NULL(txt);
 
     char buffer[200];
@@ -123,15 +145,15 @@ void testPq(void) {
 
     free(p1); free(p2); free(p3);
 
-    FILE* txt = fopen("teste.txt", "w");
-    FILE* svg = fopen("teste.svg", "w");
+    FILE* txt = fopen("testePQ.txt", "w");
+    FILE* svg = fopen("testePQ.svg", "w");
 
     processQry("teste.qry", pessoasHash, quadrasHash, txt, svg);
 
     fclose(txt);
     fclose(svg);
 
-    txt = fopen("teste.txt", "r");
+    txt = fopen("testePQ.txt", "r");
     TEST_ASSERT_NOT_NULL(txt);
 
     char buffer[200];
@@ -151,6 +173,61 @@ void testPq(void) {
     closeFile(quadrasHash);
 }
 
+void testCenso(void) {
+    FILE* qry = fopen("teste.qry", "w");
+    TEST_ASSERT_NOT_NULL(qry);
+    fprintf(qry, "censo\n");
+    fclose(qry);
+
+    HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
+    TEST_ASSERT_NOT_NULL( pessoasHash);
+
+    Pessoa* p1 = createPessoa("1", "Larissa", "Costa", 'F', "26/08/2004");
+    setMoradia(p1, "cep1", 'N', 10, "apartamento");
+    Pessoa* p2 = createPessoa("2", "Bruna", "Yokoshiro", 'F', "23/09/2005");
+    setMoradia(p2, "cep1", 'S', 20, "casa");
+    Pessoa* p3 = createPessoa("3", "Victor", "Hirota", 'M', "13/01/2005");
+
+    insertRegister(pessoasHash, "1",p1);
+    insertRegister(pessoasHash, "2",p2);
+    insertRegister(pessoasHash, "3",p3);
+
+    free(p1);
+    free(p2);
+    free(p3);
+
+    FILE* txt = fopen("testeCENSO.txt", "w");
+    TEST_ASSERT_NOT_NULL(txt);
+    FILE* svg = fopen("testeCENSO.svg", "w");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    processQry("teste.qry", pessoasHash, NULL, txt, svg);
+
+    fclose(txt);
+    fclose(svg);
+
+    txt = fopen("testeCENSO.txt", "r");
+    TEST_ASSERT_NOT_NULL(txt);
+
+    char buffer[200];
+    int achouHabitantes = 0;
+    int achouMoradores = 0;
+    int achouSemTetos = 0;
+
+    while (fgets(buffer, sizeof(buffer), txt) != NULL) {
+        if (strstr(buffer, "Habitantes: 3") != NULL) achouHabitantes = 1;
+        if (strstr(buffer, "Moradores: 2") != NULL) achouMoradores = 1;
+        if (strstr(buffer, "Sem-tetos: 1") != NULL) achouSemTetos = 1;
+    }
+
+    TEST_ASSERT_TRUE(achouHabitantes);
+    TEST_ASSERT_TRUE(achouMoradores);
+    TEST_ASSERT_TRUE(achouSemTetos);
+
+    fclose(txt);
+    closeFile(pessoasHash);
+}
+
 void testH(void) {
     HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
     TEST_ASSERT_NOT_NULL(pessoasHash);
@@ -160,10 +237,10 @@ void testH(void) {
     insertRegister(pessoasHash, getCpf(p), p);
     free(p);
 
-    FILE* txt = fopen("teste.txt", "w");
+    FILE* txt = fopen("testeH.txt", "w");
     TEST_ASSERT_NOT_NULL(txt);
 
-    FILE* svg = fopen("teste.svg", "w");
+    FILE* svg = fopen("testeH.svg", "w");
     TEST_ASSERT_NOT_NULL(svg);
 
     processQry("teste.qry", pessoasHash, NULL, txt, svg);
@@ -171,7 +248,7 @@ void testH(void) {
     fclose(txt);
     fclose(svg);
 
-    txt = fopen("teste.txt", "r");
+    txt = fopen("testeH.txt", "r");
     TEST_ASSERT_NOT_NULL(txt);
 
     char buffer[200];
@@ -188,15 +265,15 @@ void testNasc(void) {
     FILE* qry = fopen("teste.qry", "w");
     TEST_ASSERT_NOT_NULL(qry);
 
-    fprintf(qry, "nasc 123 Teste Larissa F 26/08/2004\n");
+    fprintf(qry, "nasc 123 Larissa Costa F 26/08/2004\n");
 
     fclose(qry);
 
     HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
     TEST_ASSERT_NOT_NULL(pessoasHash);
 
-    FILE* txt = fopen("teste.txt", "w");
-    FILE* svg = fopen("teste.svg", "w");
+    FILE* txt = fopen("testeNasc.txt", "w");
+    FILE* svg = fopen("testeNasc.svg", "w");
 
     processQry("teste.qry", pessoasHash, NULL, txt, svg);
 
@@ -209,7 +286,8 @@ void testNasc(void) {
     int res = searchRegister(pessoasHash, "123", p);
 
     TEST_ASSERT_EQUAL_INT(0, res);
-    TEST_ASSERT_EQUAL_STRING("Teste", getNome(p));
+    TEST_ASSERT_EQUAL_STRING("Larissa", getNome(p));
+    TEST_ASSERT_EQUAL_STRING("26/08/2004", getNasc(p));
 
     free(p);
     closeFile(pessoasHash);
@@ -232,10 +310,10 @@ void testRip(void) {
     insertRegister(pessoasHash, getCpf(p), p);
     free(p);
 
-    FILE* txt = fopen("teste.txt", "w");
+    FILE* txt = fopen("testeRIP.txt", "w");
     TEST_ASSERT_NOT_NULL(txt);
 
-    FILE* svg = fopen("teste.svg", "w");
+    FILE* svg = fopen("testeRIP.svg", "w");
     TEST_ASSERT_NOT_NULL(svg);
 
     processQry("teste.qry", pessoasHash, NULL, txt, svg);
@@ -250,7 +328,7 @@ void testRip(void) {
 
     free(removida);
 
-    txt = fopen("teste.txt", "r");
+    txt = fopen("testeRIP.txt", "r");
     TEST_ASSERT_NOT_NULL(txt);
 
     char buffer[200];
@@ -285,8 +363,8 @@ void testMud(void) {
     insertRegister(pessoasHash, getCpf(p), p);
     free(p);
 
-    FILE* txt = fopen("teste.txt", "w");
-    FILE* svg = fopen("teste.svg", "w");
+    FILE* txt = fopen("testeMUD.txt", "w");
+    FILE* svg = fopen("testeMUD.svg", "w");
 
     processQry("teste.qry", pessoasHash, NULL, txt, svg);
 
@@ -326,10 +404,10 @@ void testDspj(void) {
     insertRegister(pessoasHash, getCpf(p), p);
     free(p);
 
-    FILE* txt = fopen("teste.txt", "w");
+    FILE* txt = fopen("testeDSPJ.txt", "w");
     TEST_ASSERT_NOT_NULL(txt);
 
-    FILE* svg = fopen("teste.svg", "w");
+    FILE* svg = fopen("testeDSPJ.svg", "w");
     TEST_ASSERT_NOT_NULL(svg);
 
     processQry("teste.qry", pessoasHash, NULL, txt, svg);
@@ -345,7 +423,7 @@ void testDspj(void) {
 
     free(resultado);
 
-    txt = fopen("teste.txt", "r");
+    txt = fopen("testeDSPJ.txt", "r");
     TEST_ASSERT_NOT_NULL(txt);
 
     char buffer[200];
@@ -373,6 +451,7 @@ int main(void) {
 
     RUN_TEST(testRq);
     RUN_TEST(testPq);
+    RUN_TEST(testCenso);
     RUN_TEST(testH);
     RUN_TEST(testNasc);
     RUN_TEST(testRip);
