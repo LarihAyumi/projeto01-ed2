@@ -28,13 +28,7 @@ void testH(void) {
     HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
     TEST_ASSERT_NOT_NULL(pessoasHash);
 
-    Pessoa* p = createPessoa(
-        "800.577.369-28",
-        "Larissa",
-        "Costa",
-        'F',
-        "26/08/2004"
-    );
+    Pessoa* p = createPessoa( "800.577.369-28", "Larissa", "Costa", 'F', "26/08/2004");
 
     insertRegister(pessoasHash, getCpf(p), p);
     free(p);
@@ -94,11 +88,66 @@ void testNasc(void) {
     closeFile(pessoasHash);
 }
 
+
+void testRip(void) {
+    FILE* qry = fopen("teste.qry", "w");
+    TEST_ASSERT_NOT_NULL(qry);
+
+    fprintf(qry, "rip 800.577.369-28\n");
+
+    fclose(qry);
+
+    HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
+    TEST_ASSERT_NOT_NULL(pessoasHash);
+
+    Pessoa* p = createPessoa( "800.577.369-28", "Larissa", "Costa", 'F', "26/08/2004");
+
+    insertRegister(pessoasHash, getCpf(p), p);
+    free(p);
+
+    FILE* txt = fopen("teste.txt", "w");
+    TEST_ASSERT_NOT_NULL(txt);
+
+    FILE* svg = fopen("teste.svg", "w");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    processQry("teste.qry", pessoasHash, NULL, txt, svg);
+
+    fclose(txt);
+    fclose(svg);
+
+    Pessoa* removida = malloc(getPessoaSize());
+    TEST_ASSERT_NOT_NULL(removida);
+
+    TEST_ASSERT_EQUAL_INT(-1, searchRegister(pessoasHash, "800.577.369-28", removida));
+
+    free(removida);
+
+    txt = fopen("teste.txt", "r");
+    TEST_ASSERT_NOT_NULL(txt);
+
+    char buffer[200];
+    int encontrou = 0;
+
+    while (fgets(buffer, sizeof(buffer), txt) != NULL) {
+        if (strstr(buffer, "Larissa") != NULL) {
+            encontrou = 1;
+            break;
+        }
+    }
+
+    TEST_ASSERT_TRUE(encontrou);
+
+    fclose(txt);
+    closeFile(pessoasHash);
+}
+
 int main(void) {
     UNITY_BEGIN();
 
     RUN_TEST(testH);
     RUN_TEST(testNasc);
+    RUN_TEST(testRip);
 
     return UNITY_END();
 }
