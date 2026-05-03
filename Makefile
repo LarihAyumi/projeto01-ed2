@@ -30,7 +30,7 @@ test:
 	$(CC) $(CFLAGS) tests/test_pm.c src/hashfile.c src/pessoa.c src/pm.c $(UNITY) $(INCLUDE) -o test_pm
 	./test_pm
 
-	$(CC) $(CFLAGS) tests/test_qry.c src/qry.c src/hashfile.c src/pessoa.c $(UNITY) $(INCLUDE) -o test_qry
+	$(CC) $(CFLAGS) tests/test_qry.c src/qry.c src/hashfile.c src/pessoa.c src/quadra.c $(UNITY) $(INCLUDE) -o test_qry
 	./test_qry
 
 

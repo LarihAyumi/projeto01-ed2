@@ -1,7 +1,28 @@
 #include "../include/qry.h"
 #include "../include/pessoa.h"
+#include "../include/quadra.h"
+#include "../include/hashfile.h"
 #include <string.h>
 #include <stdlib.h>
+
+typedef struct {
+    char cep[20];
+    HashFile* pessoasHash;
+    FILE* txt;
+} RqContext;
+
+static void rqCallback(const char* key, void* record, void* extra) {
+    (void) key;
+
+    RqContext* ctx = (RqContext*) extra;
+    Pessoa* p = (Pessoa*) record;
+
+    if (pessoaTemMoradia(p) && strcmp(getCepMoradia(p), ctx->cep) == 0) {
+        fprintf(ctx->txt, "%s %s perdeu moradia\n", getNome(p), getSobrenome(p));
+        removeMoradia(p);
+        insertRegister(ctx->pessoasHash, getCpf(p), p);
+    }
+}
 
 void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHash, FILE* txt, FILE* svg) {
     (void) quadrasHash;
@@ -15,7 +36,17 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
     while (fscanf(qry, "%s", comando) != EOF) {
 
         if (strcmp(comando, "rq") == 0) {
+            char cep[20];
+            fscanf(qry, "%s", cep);
 
+            removeRegister(quadrasHash, cep);
+            RqContext ctx;
+            
+            strcpy(ctx.cep, cep);
+            ctx.pessoasHash = pessoasHash;
+            ctx.txt = txt;
+
+            scanRegisters(pessoasHash, rqCallback, &ctx);
         }
 
         else if (strcmp(comando, "pq") == 0) {

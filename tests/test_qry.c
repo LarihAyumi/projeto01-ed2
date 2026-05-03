@@ -1,6 +1,7 @@
 #include "../Unity/unity.h"
 #include "../include/qry.h"
 #include "../include/hashfile.h"
+#include "../include/quadra.h"
 #include "../include/pessoa.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +23,68 @@ void tearDown(void) {
     remove("teste_qry_hash.hf");
     remove("teste_qry_hash.hfc");
     remove("saida.hfd");
+}
+
+void testRq(void) {
+    FILE* qry = fopen("teste.qry", "w");
+    TEST_ASSERT_NOT_NULL(qry);
+
+    fprintf(qry, "rq cep1\n");
+
+    fclose(qry);
+
+    HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
+    HashFile* quadrasHash = createFile("teste_quadras_hash", getQuadraSize());
+
+    TEST_ASSERT_NOT_NULL(pessoasHash);
+    TEST_ASSERT_NOT_NULL(quadrasHash);
+
+    //cria quadra
+    Quadra* q = createQuadra("cep1", 0, 0, 100, 100);
+    insertRegister(quadrasHash, "cep1", q);
+    free(q);
+
+    //cria morador
+    Pessoa* p = createPessoa("123", "Ana", "Silva", 'F', "01/01/2000");
+    setMoradia(p, "cep1", 'S', 10, "casa");
+
+    insertRegister(pessoasHash, getCpf(p), p);
+    free(p);
+
+    FILE* txt = fopen("teste.txt", "w");
+    FILE* svg = fopen("teste.svg", "w");
+
+    processQry("teste.qry", pessoasHash, quadrasHash, txt, svg);
+
+    fclose(txt);
+    fclose(svg);
+
+    Pessoa* res = malloc(getPessoaSize());
+    TEST_ASSERT_NOT_NULL(res);
+
+    TEST_ASSERT_EQUAL_INT(0, searchRegister(pessoasHash, "123", res));
+    TEST_ASSERT_FALSE(pessoaTemMoradia(res));
+
+    free(res);
+
+    txt = fopen("teste.txt", "r");
+    TEST_ASSERT_NOT_NULL(txt);
+
+    char buffer[200];
+    int encontrou = 0;
+
+    while (fgets(buffer, sizeof(buffer), txt)) {
+        if (strstr(buffer, "Ana") != NULL) {
+            encontrou = 1;
+        }
+    }
+
+    TEST_ASSERT_TRUE(encontrou);
+
+    fclose(txt);
+
+    closeFile(pessoasHash);
+    closeFile(quadrasHash);
 }
 
 void testH(void) {
@@ -244,6 +307,7 @@ void testDspj(void) {
 int main(void) {
     UNITY_BEGIN();
 
+    RUN_TEST(testRq);
     RUN_TEST(testH);
     RUN_TEST(testNasc);
     RUN_TEST(testRip);
