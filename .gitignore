@@ -6,6 +6,8 @@
 #Arquivos de saída 
 *.svg
 *.dat
+*.txt
+!leiame.txt
 
 #Executáveis
 *.exe

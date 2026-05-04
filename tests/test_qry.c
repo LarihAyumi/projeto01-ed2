@@ -1,5 +1,6 @@
 #include "../Unity/unity.h"
 #include "../include/qry.h"
+#include "../include/svg.h"
 #include "../include/hashfile.h"
 #include "../include/quadra.h"
 #include "../include/pessoa.h"
@@ -27,8 +28,8 @@ void tearDown(void) {
     remove("testeRQ.txt");
     remove("testeRQ.svg");
 
-    //remove("testePQ.txt");
-    //remove("testePQ.svg");
+    remove("testePQ.txt");
+    remove("testePQ.svg");
 
     remove("testeCENSO.txt");
     remove("testeCENSO.svg");
@@ -343,24 +344,31 @@ void testRip(void) {
     TEST_ASSERT_NOT_NULL(qry);
 
     fprintf(qry, "rip 800.577.369-28\n");
-
     fclose(qry);
 
     HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
     TEST_ASSERT_NOT_NULL(pessoasHash);
-
     Pessoa* p = createPessoa( "800.577.369-28", "Larissa", "Costa", 'F', "26/08/2004");
+    setMoradia(p, "cep1", 'S', 50, "casa");
+
+    HashFile* quadrasHash = createFile("teste_quadras_hash", getQuadraSize());
+    TEST_ASSERT_NOT_NULL(quadrasHash);
+    Quadra* q = createQuadra("cep1", 200, 200, 100, 100);
 
     insertRegister(pessoasHash, getCpf(p), p);
     free(p);
+    insertRegister(quadrasHash, "cep1", q);
+    free(q);
 
     FILE* txt = fopen("testeRIP.txt", "w");
     TEST_ASSERT_NOT_NULL(txt);
-
     FILE* svg = fopen("testeRIP.svg", "w");
     TEST_ASSERT_NOT_NULL(svg);
 
-    processQry("teste.qry", pessoasHash, NULL, txt, svg);
+    startSVG(svg);
+    processQry("teste.qry", pessoasHash, quadrasHash, txt, svg);
+    endSVG(svg);
+    
 
     fclose(txt);
     fclose(svg);
@@ -371,6 +379,21 @@ void testRip(void) {
     TEST_ASSERT_EQUAL_INT(-1, searchRegister(pessoasHash, "800.577.369-28", removida));
 
     free(removida);
+
+    svg = fopen("testeRIP.svg", "r");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    char bufferSVG[300];
+    int encontrouLine = 0;
+
+    while (fgets(bufferSVG, sizeof(bufferSVG), svg)) {
+        if (strstr(bufferSVG, "<line") != NULL) {
+            encontrouLine = 1;
+        }
+    }
+
+    fclose(svg);
+    TEST_ASSERT_TRUE(encontrouLine);
 
     txt = fopen("testeRIP.txt", "r");
     TEST_ASSERT_NOT_NULL(txt);
@@ -389,6 +412,7 @@ void testRip(void) {
 
     fclose(txt);
     closeFile(pessoasHash);
+    closeFile(quadrasHash);
 }
 
 void testMud(void) {

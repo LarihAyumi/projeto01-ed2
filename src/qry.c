@@ -283,17 +283,20 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
 
             if (p && searchRegister(pessoasHash, cpf, p) == 0) {
                 fprintf(txt, "Descanse em paz\n");
-                fprintf(txt, "Nome: %s %s/n CPF: %s\n", getNome(p), getSobrenome(p), getCpf(p));
+                fprintf(txt, "Nome: %s %s\n CPF: %s\n", getNome(p), getSobrenome(p), getCpf(p));
                 fprintf(txt, "Do gênero %c\n", getSexo(p));
                 fprintf(txt, "Nascida em: %s\n", getNasc(p));
 
                 if (pessoaTemMoradia(p)) {
+                    double x, y;
                     fprintf(txt, "Endereço: %s/%c/%d/%s\n", getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), getCompMoradia(p));
+                    if (enderecoToXY(quadrasHash, getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), &x, &y)) {
+                        drawCruzVermelha(svg, x, y);
+                    }
+                    removeRegister(pessoasHash, cpf);
                 }
-
-                removeRegister(pessoasHash, cpf);
+                free(p);
             }
-            free(p);
         }
         
         else if (strcmp(comando, "mud") == 0) {
