@@ -47,3 +47,12 @@ void drawCruzVermelha(FILE* svg, double x, double y) {
 
     fprintf(svg, "<line x1=\"%lf\" y1=\"%lf\" x2=\"%lf\" y2=\"%lf\" stroke=\"red\" stroke-width=\"3\" />\n", x, y-t, x, y+t);
 }
+
+void drawQuadradoCpf(FILE* svg, double x, double y, const char* cpf) {
+    fprintf(svg,"<rect x=\"%lf\" y=\"%lf\" width=\"30\" height=\"30\" fill=\"red\" stroke=\"red\" stroke-width=\"2\" />\n", x-10, y-10);
+
+    
+    fprintf(svg,
+        "<text x=\"%lf\" y=\"%lf\" font-size=\"5\" fill=\"black\" text-anchor=\"middle\">%s</text>\n",
+        x, y + 2, cpf);
+}

@@ -40,8 +40,8 @@ void tearDown(void) {
     remove("testeH.txt");
     remove("testeH.svg");
 
-    remove("testeMUD.txt");
-    remove("testeMUD.svg");
+    //remove("testeMUD.txt");
+    //remove("testeMUD.svg");
 
     remove("testeNasc.txt");
     remove("testeNasc.svg");
@@ -420,30 +420,51 @@ void testMud(void) {
     TEST_ASSERT_NOT_NULL(qry);
 
     fprintf(qry, "mud 800.577.369-28 cep1 S 50 casa\n");
-
     fclose(qry);
 
     HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
     TEST_ASSERT_NOT_NULL(pessoasHash);
-
     Pessoa* p = createPessoa("800.577.369-28", "Larissa", "Costa", 'F',"26/08/2004");
 
+    HashFile* quadrasHash = createFile("teste_quadras_hash", getQuadraSize());
+    TEST_ASSERT_NOT_NULL(quadrasHash);
+    Quadra* q = createQuadra("cep1", 200, 200, 100, 100);
+
+    insertRegister(quadrasHash, "cep1", q);
+    free(q);
     insertRegister(pessoasHash, getCpf(p), p);
     free(p);
 
     FILE* txt = fopen("testeMUD.txt", "w");
+    TEST_ASSERT_NOT_NULL(txt);
     FILE* svg = fopen("testeMUD.svg", "w");
+    TEST_ASSERT_NOT_NULL(svg);
 
-    processQry("teste.qry", pessoasHash, NULL, txt, svg);
+    startSVG(svg);
+    processQry("teste.qry", pessoasHash, quadrasHash, txt, svg);
+    endSVG(svg);
 
     fclose(txt);
+    fclose(svg);
+
+    svg = fopen("testeMUD.svg", "r");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    char bufferSvg[300];
+    int achouRect = 0;
+    int achouCpf = 0;
+
+    while (fgets(bufferSvg, sizeof(bufferSvg), svg) != NULL) {
+        if (strstr(bufferSvg, "<rect") != NULL) achouRect = 1;
+        if (strstr(bufferSvg, "800.577.369-28") != NULL) achouCpf = 1;
+    }
+
     fclose(svg);
 
     Pessoa* resultado = malloc(getPessoaSize());
     TEST_ASSERT_NOT_NULL(resultado);
 
     TEST_ASSERT_EQUAL_INT(0, searchRegister(pessoasHash, "800.577.369-28", resultado));
-
     TEST_ASSERT_TRUE(pessoaTemMoradia(resultado));
     TEST_ASSERT_EQUAL_STRING("cep1", getCepMoradia(resultado));
     TEST_ASSERT_EQUAL_CHAR('S', getFaceMoradia(resultado));

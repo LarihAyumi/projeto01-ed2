@@ -10,7 +10,8 @@ void tearDown(void) {
     remove("teste.svg");
     remove("testDrawXVermelho.svg");
     remove("testDrawTextoSVG.svg");
-    //remove("testDrawCruzVermelha.svg");
+    remove("testDrawCruzVermelha.svg");
+    //remove("testDrawQuadradoCpf.svg");
     
 }
 
@@ -132,6 +133,36 @@ void testDrawCruzVermelha(void) {
     TEST_ASSERT_TRUE(count >= 2);
 }
 
+void testDrawQuadradoCpf(void) {
+    FILE* svg = fopen("testDrawQuadradoCpf.svg", "w");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    startSVG(svg);
+
+    drawQuadra(svg, "cep1", 200, 200, 100, 100, "pink", "black", 1);
+    drawQuadradoCpf(svg, 250, 200, "123");
+
+    endSVG(svg);
+    fclose(svg);
+
+    svg = fopen("testDrawQuadradoCpf.svg", "r");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    char buffer[300];
+    int achouRect = 0;
+    int achouCpf = 0;
+
+    while (fgets(buffer, sizeof(buffer), svg) != NULL) {
+        if (strstr(buffer, "<rect") != NULL) achouRect = 1;
+        if (strstr(buffer, "123") != NULL) achouCpf = 1;
+    }
+
+    fclose(svg);
+
+    TEST_ASSERT_TRUE(achouRect);
+    TEST_ASSERT_TRUE(achouCpf);
+}
+
 int main(void) {
     UNITY_BEGIN();
 
@@ -140,6 +171,8 @@ int main(void) {
     RUN_TEST(testDrawXVermelho);
     RUN_TEST(testDrawTextoSVG);
     RUN_TEST(testDrawCruzVermelha);
+    RUN_TEST(testDrawQuadradoCpf);
+    
 
     return UNITY_END();
 }

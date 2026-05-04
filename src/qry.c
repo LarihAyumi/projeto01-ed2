@@ -308,9 +308,14 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
             Pessoa* p = malloc(getPessoaSize());
 
             if (p && searchRegister(pessoasHash, cpf, p) == 0) {
+                double x, y;
                 setMoradia(p, cep, face, num, comp);
                 insertRegister(pessoasHash, cpf, p);
                 fprintf(txt, "%s %s se mudou!\n", getNome(p), getSobrenome(p));
+
+                if (enderecoToXY(quadrasHash, cep, face, num, &x, &y)) {
+                    drawQuadradoCpf(svg, x, y, cpf);
+                }
             }
 
             free(p);
