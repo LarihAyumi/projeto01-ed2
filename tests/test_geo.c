@@ -1,5 +1,6 @@
 #include "../Unity/unity.h"
 #include "../include/geo.h"
+#include "../include/svg.h"
 #include "../include/hashfile.h"
 #include "../include/quadra.h"
 #include <stdio.h>
@@ -18,7 +19,7 @@ void setUp(void) {
 
 void tearDown(void) {
     remove("teste.geo");
-    remove("teste_geo.svg");
+    //remove("teste_geo.svg");
     remove("teste_geo_hash.hf");
     remove("teste_geo_hash.hfc");
     remove("quadras.dat");
@@ -29,9 +30,16 @@ void testGeoCriaSvg(void) {
     HashFile* quadrasHash = createFile("teste_geo_hash", getQuadraSize());
     TEST_ASSERT_NOT_NULL(quadrasHash);
 
-    processGeo("teste.geo", "teste_geo.svg", quadrasHash);
+    FILE* svg = fopen("teste_geo.svg", "w");
+    TEST_ASSERT_NOT_NULL(svg);
+    
+    startSVG(svg);
+    processGeo("teste.geo", quadrasHash, svg);
+    endSVG(svg);
 
-    FILE* svg = fopen("teste_geo.svg", "r");
+    fclose(svg);
+
+    svg = fopen("teste_geo.svg", "r");
     TEST_ASSERT_NOT_NULL(svg);
 
     fclose(svg);
@@ -42,7 +50,14 @@ void testGeoInsereQuadras(void) {
     HashFile* quadrasHash = createFile("teste_geo_hash", getQuadraSize());
     TEST_ASSERT_NOT_NULL(quadrasHash);
 
-    processGeo("teste.geo", "teste_geo.svg", quadrasHash);
+    FILE* svg = fopen("teste_geo.svg", "w");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    startSVG(svg);
+    processGeo("teste.geo", quadrasHash, svg);
+    endSVG(svg);
+
+    fclose(svg);
 
     Quadra* q = malloc(getQuadraSize());
     TEST_ASSERT_NOT_NULL(q);

@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -fstack-protector-all
 
-SRC = src/hashfile.c src/svg.c src/geo.c src/quadra.c src/pessoa.c src/pm.c
+SRC = src/hashfile.c src/svg.c src/geo.c src/quadra.c src/pessoa.c src/pm.c src/qry.c
 UNITY = Unity/unity.c
 INCLUDE = -Iinclude -IUnity
 

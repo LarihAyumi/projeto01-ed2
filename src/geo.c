@@ -6,24 +6,22 @@
 #include <string.h>
 
 
-void processGeo(const char* geoPath, const char* svgPath, HashFile* quadrasHash) {
+void processGeo(const char* geoPath, HashFile* quadrasHash, FILE* svg) {
     FILE* geo = fopen(geoPath, "r");
-    FILE* svg = fopen(svgPath, "w");
     FILE* quadrasFile = fopen("quadras.dat", "ab+");
 
     if (!geo || !svg || !quadrasFile) {
         printf("Erro ao abrir arquivos\n");
+        if (geo) fclose(geo);
+        if (quadrasFile) fclose(quadrasFile);
         return;
     }
 
     char comando[10];
 
-    //estado do cq
     double sw = 1.0;
     char cfill[20] = "white";
     char cstrk[20] = "black";
-
-    startSVG(svg);
 
     while (fscanf(geo, "%s", comando) != EOF) {
         if (strcmp(comando, "cq") == 0) {
@@ -34,10 +32,8 @@ void processGeo(const char* geoPath, const char* svgPath, HashFile* quadrasHash)
             char cep[20];
             double x, y, w, h;
 
-            fscanf(geo, "%s %lf %lf %lf %lf",
-                   cep, &x, &y, &w, &h);
+            fscanf(geo, "%s %lf %lf %lf %lf", cep, &x, &y, &w, &h);
 
-            //desenha no SVG
             drawQuadra(svg, cep, x, y, w, h, cfill, cstrk, sw);
 
             if (quadrasHash != NULL) {
@@ -48,9 +44,6 @@ void processGeo(const char* geoPath, const char* svgPath, HashFile* quadrasHash)
         }
     }
     
-    endSVG(svg);
-
     fclose(quadrasFile);
     fclose(geo);
-    fclose(svg);
 }
