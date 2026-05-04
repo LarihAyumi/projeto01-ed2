@@ -30,7 +30,7 @@ test:
 	$(CC) $(CFLAGS) tests/test_pm.c src/hashfile.c src/pessoa.c src/pm.c $(UNITY) $(INCLUDE) -o test_pm
 	./test_pm
 
-	$(CC) $(CFLAGS) tests/test_qry.c src/qry.c src/hashfile.c src/pessoa.c src/quadra.c $(UNITY) $(INCLUDE) -o test_qry
+	$(CC) $(CFLAGS) tests/test_qry.c src/qry.c src/svg.c src/hashfile.c src/pessoa.c src/quadra.c $(UNITY) $(INCLUDE) -o test_qry
 	./test_qry
 
 
@@ -38,6 +38,6 @@ clean:
 	del /Q prog.exe test_hash.exe test_svg.exe test_pessoa.exe test_pm.exe test_quadra.exe test_geo.exe testeCENSO.txt *.hf *.hfc *.svg *.hfd *.dat 2>nul
 
 clean-linux:
-	rm -f prog test_hash test_svg test_pessoa.exe test_pm.exe test_geo.exe *.hf *.hfc *.svg *.hfd *.dat
+	rm -f prog test_hash test_svg test_pessoa.exe test_pm.exe test_geo.exe testeCENSO.txt *.hf *.hfc *.svg *.hfd *.dat
 
 tudo: all run test

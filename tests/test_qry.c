@@ -20,6 +20,8 @@ void tearDown(void) {
     remove("teste.qry");
     remove("teste_qry_hash.hf");
     remove("teste_qry_hash.hfc");
+    remove("teste_quadras_hash.hf");
+    remove("teste_quadras_hash.hfc");
     remove("saida.hfd");
 
     remove("testeRQ.txt");
@@ -52,7 +54,6 @@ void testRq(void) {
     TEST_ASSERT_NOT_NULL(qry);
 
     fprintf(qry, "rq cep1\n");
-
     fclose(qry);
 
     HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
@@ -62,12 +63,10 @@ void testRq(void) {
     TEST_ASSERT_NOT_NULL(quadrasHash);
 
 
-    Quadra* q = createQuadra("cep1", 0, 0, 100, 100);
+    Quadra* q = createQuadra("cep1", 200, 200, 100, 100);
     insertRegister(quadrasHash, "cep1", q);
     free(q);
 
- 
-    
     Pessoa* p = createPessoa("123", "Larissa", "Costa", 'F', "26/08/2004");
     setMoradia(p, "cep1", 'S', 10, "casa");
 
@@ -75,12 +74,34 @@ void testRq(void) {
     free(p);
 
     FILE* txt = fopen("testeRQ.txt", "w");
-    FILE* svg = fopen("testeRQ.svg", "w");
+    TEST_ASSERT_NOT_NULL(txt);
 
+    FILE* svg = fopen("testeRQ.svg", "w");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    startSVG(svg);
     processQry("teste.qry", pessoasHash, quadrasHash, txt, svg);
+    endSVG(svg);
 
     fclose(txt);
     fclose(svg);
+
+    svg = fopen("testeRQ.svg", "r");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    char bufferSvg[300];
+    int encontrouLine = 0;
+    int encontrouRed = 0;
+
+    while (fgets(bufferSvg, sizeof(bufferSvg), svg)) {
+        if (strstr(bufferSvg, "<line") != NULL) encontrouLine = 1;
+        if (strstr(bufferSvg, "stroke=\"red\"") != NULL) encontrouRed = 1;
+    }
+
+    fclose(svg);
+
+    TEST_ASSERT_TRUE(encontrouLine);
+    TEST_ASSERT_TRUE(encontrouRed);
 
     Pessoa* res = malloc(getPessoaSize());
     TEST_ASSERT_NOT_NULL(res);
@@ -96,15 +117,14 @@ void testRq(void) {
     char buffer[200];
     int encontrou = 0;
 
-    while (fgets(buffer, sizeof(buffer), txt)) {
+    while (fgets(buffer, sizeof(buffer), txt) != NULL) {
         if (strstr(buffer, "Larissa") != NULL) {
             encontrou = 1;
         }
     }
+    fclose(txt);
 
     TEST_ASSERT_TRUE(encontrou);
-
-    fclose(txt);
 
     closeFile(pessoasHash);
     closeFile(quadrasHash);
@@ -215,7 +235,7 @@ void testCenso(void) {
     int achouSemTetos = 0;
 
     while (fgets(buffer, sizeof(buffer), txt) != NULL) {
-        if (strstr(buffer, "Habitantes: 3") != NULL) achouHabitantes = 1;
+        if (strstr(buffer, "3 HABITANTES") != NULL) achouHabitantes = 1;
         if (strstr(buffer, "Moradores: 2") != NULL) achouMoradores = 1;
         if (strstr(buffer, "Sem-tetos: 1") != NULL) achouSemTetos = 1;
     }

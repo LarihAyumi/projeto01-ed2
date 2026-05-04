@@ -2,6 +2,7 @@
 #include "../include/pessoa.h"
 #include "../include/quadra.h"
 #include "../include/hashfile.h"
+#include "../include/svg.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -96,10 +97,48 @@ static void censoCallback(const char* key, void* record, void* extra) {
     }
 }
 
+//função para os desenhos svgs
+static int enderecoToXY(HashFile* quadrasHash, const char* cep, char face, int num, double* x, double* y) {
+    Quadra* q = malloc(getQuadraSize());
+    if (!q) return 0;
+
+    if (searchRegister(quadrasHash, cep, q) != 0) {
+        free(q);
+        return 0;
+    }
+
+    double qx = getXQuadra(q);
+    double qy = getYQuadra(q);
+    double w  = getWQuadra(q);
+    double h  = getHQuadra(q);
+
+    switch (face) {
+        case 'N': //pra baixo
+            *x = qx + num;
+            *y = qy + h;
+            break;
+        case 'S': //pra cima
+            *x = qx + num;
+            *y = qy;
+            break;
+        case 'L': //pra esquerda
+            *x = qx;
+            *y = qy + num;
+            break;
+        case 'O': //pra direita
+            *x = qx + w;
+            *y = qy + num;
+            break;
+        default:
+            free(q);
+            return 0;
+    }
+    free(q);
+    return 1;
+}
+
 //comandos
 void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHash, FILE* txt, FILE* svg) {
-    (void) svg;
-
     FILE* qry = fopen(qryPath, "r");
     if (!qry) return;
 
@@ -110,6 +149,14 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
         if (strcmp(comando, "rq") == 0) {
             char cep[20];
             fscanf(qry, "%s", cep);
+
+            Quadra* q = malloc(getQuadraSize());
+
+            if (q && searchRegister(quadrasHash, cep, q) == 0) {
+                drawXVermelho(svg, getXQuadra(q), getYQuadra(q));
+            }            
+
+            free(q);
 
             removeRegister(quadrasHash, cep);
             RqContext ctx;
