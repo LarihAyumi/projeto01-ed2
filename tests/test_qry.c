@@ -40,8 +40,8 @@ void tearDown(void) {
     remove("testeH.txt");
     remove("testeH.svg");
 
-    //remove("testeMUD.txt");
-    //remove("testeMUD.svg");
+    remove("testeMUD.txt");
+    remove("testeMUD.svg");
 
     remove("testeNasc.txt");
     remove("testeNasc.svg");
@@ -461,6 +461,9 @@ void testMud(void) {
 
     fclose(svg);
 
+    TEST_ASSERT_TRUE(achouRect);
+    TEST_ASSERT_TRUE(achouCpf);
+
     Pessoa* resultado = malloc(getPessoaSize());
     TEST_ASSERT_NOT_NULL(resultado);
 
@@ -485,21 +488,27 @@ void testDspj(void) {
 
     HashFile* pessoasHash = createFile("teste_qry_hash", getPessoaSize());
     TEST_ASSERT_NOT_NULL(pessoasHash);
-
     Pessoa* p = createPessoa("800.577.369-28", "Larissa", "Costa", 'F',"26/08/2004");
-
     setMoradia(p, "cep1", 'S', 45, "casa");
 
+    HashFile* quadrasHash = createFile("teste_quadras_hash", getQuadraSize());
+    TEST_ASSERT_NOT_NULL(quadrasHash);
+    Quadra* q = createQuadra("cep1", 200, 200, 100, 100);
+
+
+    insertRegister(quadrasHash, "cep1", q);
+    free(q);
     insertRegister(pessoasHash, getCpf(p), p);
     free(p);
 
     FILE* txt = fopen("testeDSPJ.txt", "w");
     TEST_ASSERT_NOT_NULL(txt);
-
     FILE* svg = fopen("testeDSPJ.svg", "w");
     TEST_ASSERT_NOT_NULL(svg);
 
-    processQry("teste.qry", pessoasHash, NULL, txt, svg);
+    startSVG(svg);
+    processQry("teste.qry", pessoasHash, quadrasHash, txt, svg);
+    endSVG(svg);
 
     fclose(txt);
     fclose(svg);
@@ -511,6 +520,22 @@ void testDspj(void) {
     TEST_ASSERT_FALSE(pessoaTemMoradia(resultado));
 
     free(resultado);
+
+    svg = fopen("testeDSPJ.svg", "r");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    char bufferSvg[300];
+    int achouCircle = 0;
+
+    while (fgets(bufferSvg, sizeof(bufferSvg), svg)) {
+        if (strstr(bufferSvg, "<circle") != NULL) {
+            achouCircle = 1;
+        }
+    }
+
+    fclose(svg);
+
+    TEST_ASSERT_TRUE(achouCircle);
 
     txt = fopen("testeDSPJ.txt", "r");
     TEST_ASSERT_NOT_NULL(txt);

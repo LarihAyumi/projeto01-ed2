@@ -334,7 +334,12 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
                 fprintf(txt, "Nascimento: %s\n", getNasc(p));
 
                 if (pessoaTemMoradia(p)) {
+                    double x, y;
                     fprintf(txt, "Endereço do despejo: %s/%c/%d/%s\n", getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), getCompMoradia(p));
+                    
+                    if (enderecoToXY(quadrasHash, getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), &x, &y)) { 
+                        drawCirculoPreto(svg, x, y);
+                    }
                     removeMoradia(p);
                     insertRegister(pessoasHash, cpf, p);
                 }

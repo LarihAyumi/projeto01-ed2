@@ -11,8 +11,8 @@ void tearDown(void) {
     remove("testDrawXVermelho.svg");
     remove("testDrawTextoSVG.svg");
     remove("testDrawCruzVermelha.svg");
-    //remove("testDrawQuadradoCpf.svg");
-    
+    remove("testDrawQuadradoCpf.svg");
+    remove("testDrawCirculoPreto.svg");    
 }
 
 
@@ -106,7 +106,7 @@ void testDrawTextoSVG(void) {
 }
 
 void testDrawCruzVermelha(void) {
-    FILE* svg = fopen("testDrawCruz.svg", "w");
+    FILE* svg = fopen("testDrawCruzVermelha.svg", "w");
     TEST_ASSERT_NOT_NULL(svg);
 
     startSVG(svg);
@@ -117,7 +117,7 @@ void testDrawCruzVermelha(void) {
     endSVG(svg);
     fclose(svg);
 
-    svg = fopen("testDrawCruz.svg", "r");
+    svg = fopen("testDrawCruzVermelha.svg", "r");
     TEST_ASSERT_NOT_NULL(svg);
 
     char buffer[200];
@@ -163,6 +163,33 @@ void testDrawQuadradoCpf(void) {
     TEST_ASSERT_TRUE(achouCpf);
 }
 
+void testDrawCirculoPreto(void) {
+    FILE* svg = fopen("testDrawCirculoPreto.svg", "w");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    startSVG(svg);
+    drawQuadra(svg, "cep1", 200, 200, 100, 100, "pink", "black", 1);
+    drawCirculoPreto(svg, 220, 210);
+    endSVG(svg);
+    fclose(svg);
+
+    svg = fopen("testDrawCirculoPreto.svg", "r");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    char buffer[200];
+    int achou = 0;
+
+    while (fgets(buffer, sizeof(buffer), svg)) {
+        if (strstr(buffer, "<circle") != NULL) {
+            achou = 1;
+        }
+    }
+
+    fclose(svg);
+
+    TEST_ASSERT_TRUE(achou);
+}
+
 int main(void) {
     UNITY_BEGIN();
 
@@ -172,7 +199,7 @@ int main(void) {
     RUN_TEST(testDrawTextoSVG);
     RUN_TEST(testDrawCruzVermelha);
     RUN_TEST(testDrawQuadradoCpf);
+    RUN_TEST(testDrawCirculoPreto);
     
-
     return UNITY_END();
 }
