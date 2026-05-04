@@ -38,8 +38,8 @@ void testDesenho(void) {
 
     startSVG(svg);
 
-    drawQuadra(svg, "CEP1", 50, 20, 200, 150, "gray", "black", 5);
-    drawQuadra(svg, "CEP2", 400, 20, 200, 150, "pink", "black", 5);
+    drawQuadra(svg, "CEP1", 50, 20, 200, 150, "gray", "black", "5");
+    drawQuadra(svg, "CEP2", 400, 20, 200, 150, "pink", "black", "5");
 
     endSVG(svg);
     fclose(svg);
@@ -56,7 +56,7 @@ void testDrawXVermelho(void) {
 
     startSVG(svg);
 
-    drawQuadra(svg, "cep1", 100, 100, 100, 100, "pink", "black", 1);
+    drawQuadra(svg, "cep1", 100, 100, 100, 100, "pink", "black", "1");
     drawXVermelho(svg, 100, 100);
 
     endSVG(svg);
@@ -111,7 +111,7 @@ void testDrawCruzVermelha(void) {
 
     startSVG(svg);
 
-    drawQuadra(svg, "cep1", 100, 100, 200, 100, "pink", "black", 1);
+    drawQuadra(svg, "cep1", 100, 100, 200, 100, "pink", "black", "1");
     drawCruzVermelha(svg, 120, 120);
 
     endSVG(svg);
@@ -139,8 +139,8 @@ void testDrawQuadradoCpf(void) {
 
     startSVG(svg);
 
-    drawQuadra(svg, "cep1", 200, 200, 100, 100, "pink", "black", 1);
-    drawQuadradoCpf(svg, 250, 200, "123");
+    drawQuadra(svg, "cep1", 200, 200, 100, 100, "pink", "black", "1");
+    drawQuadradoCpf(svg, 250, 200, "12345678910");
 
     endSVG(svg);
     fclose(svg);
@@ -154,7 +154,7 @@ void testDrawQuadradoCpf(void) {
 
     while (fgets(buffer, sizeof(buffer), svg) != NULL) {
         if (strstr(buffer, "<rect") != NULL) achouRect = 1;
-        if (strstr(buffer, "123") != NULL) achouCpf = 1;
+        if (strstr(buffer, "12345678910") != NULL) achouCpf = 1;
     }
 
     fclose(svg);
@@ -168,7 +168,7 @@ void testDrawCirculoPreto(void) {
     TEST_ASSERT_NOT_NULL(svg);
 
     startSVG(svg);
-    drawQuadra(svg, "cep1", 200, 200, 100, 100, "pink", "black", 1);
+    drawQuadra(svg, "cep1", 200, 200, 100, 100, "pink", "black", "1");
     drawCirculoPreto(svg, 220, 210);
     endSVG(svg);
     fclose(svg);

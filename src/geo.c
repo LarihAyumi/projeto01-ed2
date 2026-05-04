@@ -19,13 +19,13 @@ void processGeo(const char* geoPath, HashFile* quadrasHash, FILE* svg) {
 
     char comando[10];
 
-    double sw = 1.0;
+    char sw[20] = "1.0";
     char cfill[20] = "white";
     char cstrk[20] = "black";
 
     while (fscanf(geo, "%s", comando) != EOF) {
         if (strcmp(comando, "cq") == 0) {
-            fscanf(geo, "%lf %s %s", &sw, cfill, cstrk);
+            fscanf(geo, "%s %s %s", sw, cfill, cstrk);
         }
 
         else if (strcmp(comando, "q") == 0) {

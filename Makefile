@@ -9,7 +9,7 @@ all:
 	$(CC) $(CFLAGS) src/main.c $(SRC) $(INCLUDE) -o prog
 
 run:
-	./prog
+	./prog -e tests -f cidade.geo -pm pessoas.pm -q comandos.qry -o . saida
 
 test:
 	$(CC) $(CFLAGS) tests/test_hashfile.c src/hashfile.c $(UNITY) $(INCLUDE) -o test_hash
@@ -35,9 +35,9 @@ test:
 
 
 clean:
-	del /Q prog.exe test_hash.exe test_svg.exe test_pessoa.exe test_pm.exe test_quadra.exe test_geo.exe testeCENSO.txt *.hf *.hfc *.svg *.hfd *.dat 2>nul
+	del /Q prog.exe test_hash.exe test_svg.exe test_pessoa.exe test_pm.exe test_quadra.exe test_geo.exe test_qry.exe testeCENSO.txt saida.txt *.hf *.hfc *.svg *.hfd *.dat 2>nul
 
 clean-linux:
-	rm -f prog test_hash test_svg test_pessoa.exe test_pm.exe test_geo.exe testeCENSO.txt *.hf *.hfc *.svg *.hfd *.dat
+	rm -f prog test_hash test_svg test_pessoa.exe test_pm.exe test_geo.exe test_qry.exe testeCENSO.txt saida.txt *.hf *.hfc *.svg *.hfd *.dat
 
 tudo: all run test

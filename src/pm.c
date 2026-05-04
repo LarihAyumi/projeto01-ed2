@@ -8,7 +8,7 @@ void processPM(const char* pmPath, HashFile* pessoasHash) {
     FILE* pm = fopen(pmPath, "r");
 
     if (!pm) {
-        printf("Erro ao abrir arquivo .pm\n");
+        printf("Erro ao abrir arquivo PM: %s\n", pmPath);
         return;
     }
 

@@ -184,7 +184,7 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
             fprintf(txt, "S: %d\n", ctx.S);
             fprintf(txt, "L: %d\n", ctx.L);
             fprintf(txt, "O: %d\n", ctx.O);
-            fprintf(txt, "Total: %d\n", total);
+            fprintf(txt, "Total: %d\n\n", total);
 
             Quadra* q = malloc(getQuadraSize());
 
@@ -237,7 +237,7 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
             fprintf(txt, "%% de MORADORAS mulheres: %.2lf\n\n", percMoradoras);
             fprintf(txt, "Sem-tetos: %d\n", ctx.semTetos);
             fprintf(txt, "%% de SEM-TETOS que são homens: %.2lf\n", percMendigos);
-            fprintf(txt, "%% de SEM-TETOS que são mulheres: %.2lf\n", percMendigas);
+            fprintf(txt, "%% de SEM-TETOS que são mulheres: %.2lf\n\n", percMendigas);
         }
 
         else if (strcmp(comando, "h?") == 0) {
@@ -253,9 +253,9 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
                 fprintf(txt, "Nascimento: %s\n", getNasc(p));
             }
             if (pessoaTemMoradia(p)) {
-                fprintf(txt, "Endereço: %s/%c/%d/%s\n", getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), getCompMoradia(p));
+                fprintf(txt, "Endereço: %s/%c/%d/%s\n\n", getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), getCompMoradia(p));
             } else {
-            fprintf(txt, "Sem-teto\n");
+            fprintf(txt, "Sem-teto\n\n");
             }
             free(p);
         }
@@ -269,7 +269,7 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
             
             insertRegister(pessoasHash, cpf, p);
             
-            fprintf(txt,"%s %s nasceu.\n", nome, sobrenome);
+            fprintf(txt,"%s %s nasceu.\n\n", nome, sobrenome);
 
             free(p);
         }
@@ -289,11 +289,13 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
 
                 if (pessoaTemMoradia(p)) {
                     double x, y;
-                    fprintf(txt, "Endereço: %s/%c/%d/%s\n", getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), getCompMoradia(p));
+                    fprintf(txt, "Endereço: %s/%c/%d/%s\n\n", getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), getCompMoradia(p));
                     if (enderecoToXY(quadrasHash, getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), &x, &y)) {
                         drawCruzVermelha(svg, x, y);
                     }
                     removeRegister(pessoasHash, cpf);
+                } else{
+                    fprintf(txt, "\n");
                 }
                 free(p);
             }
@@ -311,7 +313,7 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
                 double x, y;
                 setMoradia(p, cep, face, num, comp);
                 insertRegister(pessoasHash, cpf, p);
-                fprintf(txt, "%s %s se mudou!\n", getNome(p), getSobrenome(p));
+                fprintf(txt, "%s %s se mudou!\n\n", getNome(p), getSobrenome(p));
 
                 if (enderecoToXY(quadrasHash, cep, face, num, &x, &y)) {
                     drawQuadradoCpf(svg, x, y, cpf);
@@ -335,13 +337,15 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
 
                 if (pessoaTemMoradia(p)) {
                     double x, y;
-                    fprintf(txt, "Endereço do despejo: %s/%c/%d/%s\n", getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), getCompMoradia(p));
-                    
+                    fprintf(txt, "Endereço do despejo: %s/%c/%d/%s\n\n", getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), getCompMoradia(p));
+
                     if (enderecoToXY(quadrasHash, getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), &x, &y)) { 
                         drawCirculoPreto(svg, x, y);
                     }
                     removeMoradia(p);
                     insertRegister(pessoasHash, cpf, p);
+                } else {
+                    fprintf(txt, "\n");
                 }
             }
             free(p);

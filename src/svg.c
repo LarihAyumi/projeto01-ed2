@@ -12,16 +12,16 @@ void endSVG(FILE* svg) {
 }
 
 
-void drawQuadra(FILE* svg, const char* cep, double x, double y, double w, double h, const char* cfill, const char* cstrk, double sw) {
+void drawQuadra(FILE* svg, const char* cep, double x, double y, double w, double h, const char* cfill, const char* cstrk, const char* sw) {
 
     //Quadra
-    fprintf(svg, "<rect x=\"%lf\" y=\"%lf\" width=\"%lf\" height=\"%lf\" " "fill=\"%s\" stroke=\"%s\" stroke-width=\"%lf\" />\n", x, y, w, h, cfill, cstrk, sw);
+    fprintf(svg, "<rect x=\"%lf\" y=\"%lf\" width=\"%lf\" height=\"%lf\" " "fill=\"%s\" stroke=\"%s\" stroke-width=\"%s\" />\n", x, y, w, h, cfill, cstrk, sw);
 
     //Ponto de âncora
-    fprintf(svg, "<circle cx=\"%lf\" cy=\"%lf\" r=\"10\" fill=\"red\" stroke=\"%s\" stroke-width=\"%lf\" />\n", x, y, cstrk, sw);
+    //fprintf(svg, "<circle cx=\"%lf\" cy=\"%lf\" r=\"10\" fill=\"white\" stroke=\"%s\" stroke-width=\"%s\" />\n", x, y, cstrk, sw);
 
     //CEP
-    fprintf(svg, "<text x=\"%lf\" y=\"%lf\" font-size=\"10\" fill=\"black\">%s</text>\n", x + w/4, y + h/2, cep);
+    fprintf(svg, "<text x=\"%lf\" y=\"%lf\" font-size=\"10\" fill=\"black\" stroke=\"black\">%s</text>\n", x + w/4, y + h/2, cep);
 }
 
 
@@ -36,7 +36,7 @@ void drawXVermelho(FILE* svg, double x, double y) {
 
 
 void drawTextoSVG(FILE* svg, double x, double y, const char* texto) {
-    fprintf(svg, "<text x=\"%lf\" y=\"%lf\" font-size=\"24\" fill=\"black\" text-anchor=\"middle\">%s</text>\n", x, y, texto);
+    fprintf(svg, "<text x=\"%lf\" y=\"%lf\" font-size=\"15\" fill=\"purple\" text-anchor=\"middle\">%s</text>\n", x, y, texto);
 }
 
 

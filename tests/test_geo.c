@@ -19,7 +19,7 @@ void setUp(void) {
 
 void tearDown(void) {
     remove("teste.geo");
-    //remove("teste_geo.svg");
+    remove("teste_geo.svg");
     remove("teste_geo_hash.hf");
     remove("teste_geo_hash.hfc");
     remove("quadras.dat");

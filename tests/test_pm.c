@@ -11,6 +11,7 @@ void setUp(void) {
 void tearDown(void) {
     remove("teste_pessoas.hf");
     remove("teste_pessoas.hfc");
+    remove("teste_pessoas.hfd");
     remove("saida.hfd");
 }
 
@@ -18,7 +19,7 @@ void testCarregaPessoa(void) {
     HashFile* pessoasHash = createFile("teste_pessoas", getPessoaSize());
     TEST_ASSERT_NOT_NULL(pessoasHash);
 
-    processPM("tests/pessoas.pm", pessoasHash);
+    processPM("tests/test_pm.pm", pessoasHash);
 
     Pessoa* p = malloc(getPessoaSize());
     TEST_ASSERT_NOT_NULL(p);
@@ -36,7 +37,7 @@ void testCarregaMoradia(void) {
     HashFile* pessoasHash = createFile("teste_pessoas", getPessoaSize());
     TEST_ASSERT_NOT_NULL(pessoasHash);
 
-    processPM("tests/pessoas.pm", pessoasHash);
+    processPM("tests/test_pm.pm", pessoasHash);
 
     Pessoa* p = malloc(getPessoaSize());
     TEST_ASSERT_NOT_NULL(p);
@@ -56,7 +57,7 @@ void testMantemSemTeto(void) {
     HashFile* pessoasHash = createFile("teste_pessoas", getPessoaSize());
     TEST_ASSERT_NOT_NULL(pessoasHash);
 
-    processPM("tests/pessoas.pm", pessoasHash);
+    processPM("tests/test_pm.pm", pessoasHash);
 
     Pessoa* p = malloc(getPessoaSize());
     TEST_ASSERT_NOT_NULL(p);

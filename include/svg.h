@@ -30,7 +30,7 @@ void endSVG(FILE* svg);
  * @param cstrk Cor da borda
  * @param sw Espessura da borda
  */
-void drawQuadra(FILE* svg, const char* cep, double x, double y, double w, double h, const char* cfill, const char* cstrk, double sw);
+void drawQuadra(FILE* svg, const char* cep, double x, double y, double w, double h, const char* cfill, const char* cstrk, const char* sw);
 
 
 //FUNÇÕES PARA OS COMANDOS QRY
