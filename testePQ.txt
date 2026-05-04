@@ -1,6 +1,0 @@
-CEP: cep1
-N: 1
-S: 2
-L: 0
-O: 0
-Total: 3
