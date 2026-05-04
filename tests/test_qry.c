@@ -27,8 +27,8 @@ void tearDown(void) {
     remove("testeRQ.txt");
     remove("testeRQ.svg");
 
-    remove("testePQ.txt");
-    remove("testePQ.svg");
+    //remove("testePQ.txt");
+    //remove("testePQ.svg");
 
     remove("testeCENSO.txt");
     remove("testeCENSO.svg");
@@ -145,7 +145,7 @@ void testPq(void) {
     TEST_ASSERT_NOT_NULL(quadrasHash);
 
     //quadra
-    Quadra* q = createQuadra("cep1", 0, 0, 100, 100);
+    Quadra* q = createQuadra("cep1", 200, 200, 100, 100);
     insertRegister(quadrasHash, "cep1", q);
     free(q);
 
@@ -168,10 +168,34 @@ void testPq(void) {
     FILE* txt = fopen("testePQ.txt", "w");
     FILE* svg = fopen("testePQ.svg", "w");
 
+    startSVG(svg);
     processQry("teste.qry", pessoasHash, quadrasHash, txt, svg);
+    endSVG(svg);
 
     fclose(txt);
     fclose(svg);
+
+    svg = fopen("testePQ.svg", "r");
+    TEST_ASSERT_NOT_NULL(svg);
+
+    char bufferSvg[300];
+    int encontrouText = 0;
+    int encontrouTotalSvg = 0;
+
+    while (fgets(bufferSvg, sizeof(bufferSvg), svg) != NULL) {
+        if (strstr(bufferSvg, "<text") != NULL) {
+            encontrouText = 1;
+        }
+
+        if (strstr(bufferSvg, ">3<") != NULL) {
+            encontrouTotalSvg = 1;
+        }
+    }
+
+    fclose(svg);
+
+    TEST_ASSERT_TRUE(encontrouText);
+    TEST_ASSERT_TRUE(encontrouTotalSvg);
 
     txt = fopen("testePQ.txt", "r");
     TEST_ASSERT_NOT_NULL(txt);

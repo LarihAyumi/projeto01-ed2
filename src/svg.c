@@ -33,3 +33,7 @@ void drawXVermelho(FILE* svg, double x, double y) {
 
     fprintf(svg, "<line x1=\"%lf\" y1=\"%lf\" x2=\"%lf\" y2=\"%lf\" stroke=\"red\" stroke-width=\"3\" />\n", x - t, y + t, x + t, y - t);
 }
+
+void drawTextoSVG(FILE* svg, double x, double y, const char* texto) {
+    fprintf(svg, "<text x=\"%lf\" y=\"%lf\" font-size=\"24\" fill=\"black\" text-anchor=\"middle\">%s</text>\n", x, y, texto);
+}

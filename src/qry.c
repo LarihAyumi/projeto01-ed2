@@ -185,6 +185,33 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
             fprintf(txt, "L: %d\n", ctx.L);
             fprintf(txt, "O: %d\n", ctx.O);
             fprintf(txt, "Total: %d\n", total);
+
+            Quadra* q = malloc(getQuadraSize());
+
+            if (q && searchRegister(quadrasHash, cep, q) == 0) {
+                char texto[20];
+
+                double x = getXQuadra(q);
+                double y = getYQuadra(q);
+                double w = getWQuadra(q);
+                double h = getHQuadra(q);
+
+                sprintf(texto, "%d", ctx.N);
+                drawTextoSVG(svg, x+w/2, y+h+15, texto);
+
+                sprintf(texto, "%d", ctx.S);
+                drawTextoSVG(svg, x+w/2, y-5, texto);
+
+                sprintf(texto, "%d", ctx.L);
+                drawTextoSVG(svg, x-10, y+h/2, texto);
+
+                sprintf(texto, "%d", ctx.O);
+                drawTextoSVG(svg, x+w+10, y+h/2, texto);
+
+                sprintf(texto, "%d", total);
+                drawTextoSVG(svg, x+w/2, y+h/2, texto);
+            }
+            free(q);
         }
 
         else if (strcmp(comando, "censo") == 0) {
