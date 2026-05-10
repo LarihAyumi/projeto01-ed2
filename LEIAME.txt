@@ -8,13 +8,15 @@ Funcionalidades
  .geo para a manipulação de quadras; 
  .pm para o cadastro de habitantes e moradores; 
  .qry para a Consultas e atualizações;
- .hf e .hfc Armazenamento em hashfile extensível com persistência em disco 
+ .hf e .hfc armazenamento em hashfile extensível com persistência em disco 
  .hfd sendo gerado para representação legível do hashfile
 
 Estrutura
 - hashfile: implementação do hash extensível em disco;
 - svg: geração do arquivo SVG da cidade;
 - geo: leitura e processamento do arquivo .geo;
+- pm: leitura e processamento do arquivo .pm;
+- qry: processamento dos comandos do arquivo .qry;
 - quadra: representação das quadras da cidade;
 - pessoa: representação de habitantes e moradores.
 
