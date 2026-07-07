@@ -140,7 +140,11 @@ static int enderecoToXY(HashFile* quadrasHash, const char* cep, char face, int n
 //comandos
 void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHash, FILE* txt, FILE* svg) {
     FILE* qry = fopen(qryPath, "r");
-    if (!qry) return;
+
+    if (!qry) {
+        printf("Erro ao abrir arquivo QRY: %s\n", qryPath);
+        return;
+    }
 
     char comando[10];
 

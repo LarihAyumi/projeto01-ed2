@@ -10,15 +10,43 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-static void montarPath(char* destino, const char* dir, const char* arq) {
+static void montarPath(char* destino, size_t tam, const char* dir, const char* arq) {
     if (dir == NULL || strlen(dir) == 0) {
-        sprintf(destino, "%s", arq);
+        snprintf(destino, tam, "%s", arq);
     } else {
-        sprintf(destino, "%s/%s", dir, arq);
+        snprintf(destino, tam, "%s/%s", dir, arq);
     }
 }
 
+static void nomeBaseSemExtensao(char* destino, size_t tam, const char* caminho) {
+    const char* base = strrchr(caminho, '/');
+    const char* baseWin = strrchr(caminho, '\\');
+
+    if (baseWin != NULL && (base == NULL || baseWin > base)) {
+        base = baseWin;
+    }
+
+    base = base ? base + 1 : caminho;
+
+    snprintf(destino, tam, "%s", base);
+
+    char* ponto = strrchr(destino, '.');
+    if (ponto != NULL) {
+        *ponto = '\0';
+    }
+}
+
+static int criarDiretorioSaida(const char* dir) {
+    char comando[600];
+
+#ifdef _WIN32
+    snprintf(comando, sizeof(comando), "if not exist \"%s\" mkdir \"%s\"", dir, dir);
+#else
+    snprintf(comando, sizeof(comando), "mkdir -p \"%s\"", dir);
+#endif
+
+    return system(comando);
+}
 
 int main(int argc, char* argv[]) {
     char bed[256] = "";
@@ -30,62 +58,72 @@ int main(int argc, char* argv[]) {
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-e") == 0 && i + 1 < argc) {
             strcpy(bed, argv[++i]);
-        } 
-
-        else if (strcmp(argv[i], "-f") == 0 && i + 1 < argc) {
+        } else if (strcmp(argv[i], "-f") == 0 && i + 1 < argc) {
             strcpy(arqGeo, argv[++i]);
-        } 
-
-        else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
+        } else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
             strcpy(bsd, argv[++i]);
-        } 
-
-        else if (strcmp(argv[i], "-pm") == 0 && i + 1 < argc) {
+        } else if (strcmp(argv[i], "-pm") == 0 && i + 1 < argc) {
             strcpy(arqPm, argv[++i]);
-        } 
-
-        else if (strcmp(argv[i], "-q") == 0 && i + 1 < argc) {
+        } else if (strcmp(argv[i], "-q") == 0 && i + 1 < argc) {
             strcpy(arqQry, argv[++i]);
         }
     }
 
     if (strlen(arqGeo) == 0 || strlen(bsd) == 0) {
-        printf("Uso: ./prog -e entrada -f cidade.geo -pm pessoas.pm -q consulta.qry -o saida\n");
+        printf("Uso: ./ted -e entrada -f cidade.geo -pm pessoas.pm -q consulta.qry -o saida\n");
         return 1;
     }
 
-    #ifdef _WIN32
-        char comando[300];
-        sprintf(comando, "mkdir \"%s\" 2>nul", bsd);
-        system(comando);
-    #else
-        char comando[300];
-        sprintf(comando, "mkdir \"%s\" 2>nul", bsd);
-        system(comando);
-    #endif
-    
-    
-    char geoPath[512];
-    char pmPath[512];
-    char qryPath[512];
-    char svgPath[512];
-    char txtPath[512];
+    if (criarDiretorioSaida(bsd) != 0) {
+        printf("Erro ao criar diretorio de saida: %s\n", bsd);
+        return 1;
+    }
 
-    montarPath(geoPath, bed, arqGeo);
+    char geoPath[2048] = "";
+    char pmPath[2048] = "";
+    char qryPath[2048] = "";
+    char svgPath[2048] = "";
+    char txtPath[2048] = "";
+    char quadrasBasePath[2048] = "";
+    char pessoasBasePath[2048] = "";
+    char quadrasHfdPath[2048] = "";
+    char pessoasHfdPath[2048] = "";
+
+    montarPath(geoPath, sizeof(geoPath), bed, arqGeo);
 
     if (strlen(arqPm) > 0) {
-        montarPath(pmPath, bed, arqPm);
+        montarPath(pmPath, sizeof(pmPath), bed, arqPm);
     }
 
     if (strlen(arqQry) > 0) {
-        montarPath(qryPath, bed, arqQry);
+        montarPath(qryPath, sizeof(qryPath), bed, arqQry);
     }
 
-    sprintf(svgPath, "%s/saida.svg", bsd);
-    sprintf(txtPath, "%s/saida.txt", bsd);
+    char geoBase[128];
+    char qryBase[128];
+    char nomeSaida[512];
 
-    HashFile* quadras = createFile("quadras", getQuadraSize());
-    HashFile* pessoas = createFile("pessoas", getPessoaSize());
+    nomeBaseSemExtensao(geoBase, sizeof(geoBase), arqGeo);
+
+    if (strlen(arqQry) > 0) {
+        nomeBaseSemExtensao(qryBase, sizeof(qryBase), arqQry);
+        snprintf(nomeSaida, sizeof(nomeSaida), "%s-%s", geoBase, qryBase);
+    } else {
+        snprintf(nomeSaida, sizeof(nomeSaida), "%s", geoBase);
+    }
+
+    snprintf(svgPath, sizeof(svgPath), "%s/%s.svg", bsd, nomeSaida);
+    if (strlen(arqQry) > 0) {
+        snprintf(txtPath, sizeof(txtPath), "%s/%s.txt", bsd, nomeSaida);
+    }
+
+    snprintf(quadrasBasePath, sizeof(quadrasBasePath), "%s/quadras", bsd);
+    snprintf(pessoasBasePath, sizeof(pessoasBasePath), "%s/pessoas", bsd);
+    snprintf(quadrasHfdPath, sizeof(quadrasHfdPath), "%s/quadras.hfd", bsd);
+    snprintf(pessoasHfdPath, sizeof(pessoasHfdPath), "%s/pessoas.hfd", bsd);
+
+    HashFile* quadras = createFile(quadrasBasePath, getQuadraSize());
+    HashFile* pessoas = createFile(pessoasBasePath, getPessoaSize());
 
     if (!quadras || !pessoas) {
         printf("Erro ao criar hashfiles\n");
@@ -97,10 +135,14 @@ int main(int argc, char* argv[]) {
     }
 
     FILE* svg = fopen(svgPath, "w");
-    FILE* txt = fopen(txtPath, "w");
+    FILE* txt = NULL;
 
-    if (!svg || !txt) {
-        printf("Erro ao criar arquivos de saída\n");
+    if (strlen(arqQry) > 0) {
+        txt = fopen(txtPath, "w");
+    }
+
+    if (!svg || (strlen(arqQry) > 0 && !txt)) {
+        printf("Erro ao criar arquivos de saida\n");
 
         if (svg) fclose(svg);
         if (txt) fclose(txt);
@@ -126,13 +168,7 @@ int main(int argc, char* argv[]) {
     endSVG(svg);
 
     fclose(svg);
-    fclose(txt);
-
-    char quadrasHfdPath[512];
-    char pessoasHfdPath[512];
-
-    sprintf(quadrasHfdPath, "%s/quadras.hfd", bsd);
-    sprintf(pessoasHfdPath, "%s/pessoas.hfd", bsd);
+    if (txt) fclose(txt);
 
     generateHFD(quadras, quadrasHfdPath);
     generateHFD(pessoas, pessoasHfdPath);

@@ -35,11 +35,13 @@ clean:
 	rm -f ted ted.exe *.hf *.hfc *.svg *.hfd *.dat
 	rm -f ../test_hash ../test_svg ../test_pessoa ../test_pm ../test_quadra ../test_geo ../test_qry
 	rm -rf ../saida
+	rm -rf ../o
 
 clean-win:
 	-del /Q ted.exe ted *.hf *.hfc *.svg *.hfd *.dat 2>nul
 	-del /Q ..\*.hf ..\*.hfc ..\*.svg ..\*.hfd ..\*.dat 2>nul
 	-del /Q ..\test_hash.exe ..\test_svg.exe ..\test_pessoa.exe ..\test_pm.exe ..\test_quadra.exe ..\test_geo.exe ..\test_qry.exe 2>nul
-	if exist ..\saida rmdir /S /Q ..\saida
+	-del /Q ..\o\*.svg ..\o\*.txt ..\o\*.hfd ..\o\*.hf ..\o\*.hfc ..\o\*.dot 2>nul
+	-del /Q ..\saida\*.svg ..\saida\*.txt ..\saida\*.hfd ..\saida\*.hf ..\saida\*.hfc ..\saida\*.dot 2>nul
 
 tudo: ted run tstall

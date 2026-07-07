@@ -37,16 +37,6 @@ HashFile* openFile(const char* filename);
  */
 int insertRegister(HashFile* file, const char* key, const void* record);
 
-/** Divide um bucket quando ele atinge sua capacidade máxima.
- * - Cria um novo bucket com maior profundidade local;
- * - Atualiza o diretório para apontar para o novo bucket;
- * - Redistribui os registros do bucket antigo entre os dois buckets;
- * - Se precisar, dobra o diretório.
- * @param h Estrutura do hashfile
- * @param index Índice do diretório que aponta para o bucket a ser dividido
- */
-void splitBucket(HashFile* h, int index);
-
 /** Busca um registro pela chave
  * @param file Hashfile
  * @param key Chave alfanumérica

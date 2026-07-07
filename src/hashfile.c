@@ -27,7 +27,15 @@ struct HashFile {
     size_t recordSize;
 };
 
-int hashString(const char* key, int depth) {
+static int hashString(const char* key, int depth);
+static Bucket createBucket(int depth);
+static long writeBucket(HashFile* h, Bucket* b);
+static int readBucket(HashFile* h, long pos, Bucket* b);
+static int saveHeader(HashFile* h);
+static int doubleDirectory(HashFile* h);
+static int splitBucket(HashFile* h, int index);
+
+static int hashString(const char* key, int depth) {
     unsigned long h = 5381;
 
     for (int i = 0; key[i] != '\0'; i++) {
@@ -37,33 +45,40 @@ int hashString(const char* key, int depth) {
     return h & ((1 << depth) - 1);
 }
 
-Bucket createBucket(int depth) {
+static Bucket createBucket(int depth) {
     Bucket b;
+
+    memset(&b, 0, sizeof(Bucket));
+    
     b.count = 0;
     b.localDepth = depth;
     return b;
 }
 
-long writeBucket(HashFile* h, Bucket* b) {
+static long writeBucket(HashFile* h, Bucket* b) {
     fseek(h->hf, 0, SEEK_END);
     long pos = ftell(h->hf);
     fwrite(b, sizeof(Bucket), 1, h->hf);
     return pos;
 }
 
-void readBucket(HashFile* h, long pos, Bucket* b) {
-    fseek(h->hf, pos, SEEK_SET);
-    fread(b, sizeof(Bucket), 1, h->hf);
+static int readBucket(HashFile* h, long pos, Bucket* b) {
+    if (!h || !h->hf || !b || pos < 0) return -1;
+    if (fseek(h->hf, pos, SEEK_SET) != 0) return -1;
+    return fread(b, sizeof(Bucket), 1, h->hf) == 1 ? 0 : -1;
 }
 
-void saveHeader(HashFile* h) {
+static int saveHeader(HashFile* h) {
+    if (!h || !h->hfc || !h->directory) return -1;
     rewind(h->hfc);
 
     Header head = { h->globalDepth, h->recordSize };
-    fwrite(&head, sizeof(Header), 1, h->hfc);
+    if (fwrite(&head, sizeof(Header), 1, h->hfc) != 1) return -1;
 
     int size = 1 << h->globalDepth;
-    fwrite(h->directory, sizeof(long), size, h->hfc);
+    if (fwrite(h->directory, sizeof(long), size, h->hfc) != (size_t) size) return -1;
+    fflush(h->hfc);
+    return 0;
 }
 
 
@@ -121,20 +136,37 @@ HashFile* createFile(const char* name, size_t recordSize) {
 
 HashFile* openFile(const char* name) {
     HashFile* h = malloc(sizeof(HashFile));
+    if (!h) return NULL;
 
     char *hfName = malloc(strlen(name) + 4);
     char *hfcName = malloc(strlen(name) + 5);
+    if (!hfName || !hfcName) {
+        free(hfName);
+        free(hfcName);
+        free(h);
+        return NULL;
+    }
+
     sprintf(hfName, "%s.hf", name);
     sprintf(hfcName, "%s.hfc", name);
 
     h->hf = fopen(hfName, "rb+");
     h->hfc = fopen(hfcName, "rb+");
 
-    Header head;
-    fread(&head, sizeof(Header), 1, h->hfc);
+    free(hfName);
+    free(hfcName);
+
     if (!h->hf || !h->hfc) {
         if (h->hf) fclose(h->hf);
         if (h->hfc) fclose(h->hfc);
+        free(h);
+        return NULL;
+    }
+
+    Header head;
+    if (fread(&head, sizeof(Header), 1, h->hfc) != 1) {
+        fclose(h->hf);
+        fclose(h->hfc);
         free(h);
         return NULL;
     }
@@ -144,34 +176,38 @@ HashFile* openFile(const char* name) {
 
     int size = 1 << h->globalDepth;
     h->directory = malloc(size * sizeof(long));
-
-    if (!h->hf || !h->hfc) {
-        if (h->hf) fclose(h->hf);
-        if (h->hfc) fclose(h->hfc);
-        free(hfName);
-        free(hfcName);
+    if (!h->directory) {
+        fclose(h->hf);
+        fclose(h->hfc);
         free(h);
         return NULL;
     }
 
-    fread(h->directory, sizeof(long), size, h->hfc);
+    if (fread(h->directory, sizeof(long), size, h->hfc) != (size_t) size) {
+        fclose(h->hf);
+        fclose(h->hfc);
+        free(h->directory);
+        free(h);
+        return NULL;
+    }
 
-    free(hfName);
-    free(hfcName);
     return h;
 }
 
-void doubleDirectory(HashFile* h) {
+static int doubleDirectory(HashFile* h) {
     int oldSize = 1 << h->globalDepth;
     int newSize = oldSize * 2;
 
-    h->directory = realloc(h->directory, newSize * sizeof(long));
+    long* novoDiretorio = realloc(h->directory, newSize * sizeof(long));
+    if (!novoDiretorio) return -1;
+    h->directory = novoDiretorio;
 
     for (int i = 0; i < oldSize; i++) {
         h->directory[i + oldSize] = h->directory[i];
     }
 
     h->globalDepth++;
+    return 0;
 }
 
 
@@ -185,8 +221,9 @@ int insertRegister(HashFile* h, const char* key, const void* record) {
 
     for (int i = 0; i < b.count; i++) {
         if (strcmp(b.keys[i], key) == 0) {
+            memset(b.records[i], 0, MAX_RECORD_SIZE);
             memcpy(b.records[i], record, h->recordSize);
-
+            
             fseek(h->hf, pos, SEEK_SET);
             fwrite(&b, sizeof(Bucket), 1, h->hf);
 
@@ -198,6 +235,7 @@ int insertRegister(HashFile* h, const char* key, const void* record) {
         strncpy(b.keys[b.count], key, KEY_SIZE - 1);
         b.keys[b.count][KEY_SIZE - 1] = '\0';
 
+        memset(b.records[b.count], 0, MAX_RECORD_SIZE);
         memcpy(b.records[b.count], record, h->recordSize);
 
         b.count++;
@@ -209,19 +247,21 @@ int insertRegister(HashFile* h, const char* key, const void* record) {
         return 0;
     }
 
-    splitBucket(h, index);
+    if (splitBucket(h, index) != 0) {
+        return -1;
+    }
     return insertRegister(h, key, record);
 }
 
 
-void splitBucket(HashFile* h, int index) {
+static int splitBucket(HashFile* h, int index) {
     long oldPos = h->directory[index];
 
     Bucket old;
-    readBucket(h, oldPos, &old);
+    if (readBucket(h, oldPos, &old) != 0) return -1;
 
     if (old.localDepth == h->globalDepth) {
-        doubleDirectory(h);
+        if (doubleDirectory(h) != 0) return -1;
     }
 
     Bucket newB = createBucket(old.localDepth + 1);
@@ -255,8 +295,10 @@ void splitBucket(HashFile* h, int index) {
 
     // e reinsere 
     for (int i = 0; i < count; i++) {
-        insertRegister(h, tempKeys[i], tempRecords[i]);
+        if (insertRegister(h, tempKeys[i], tempRecords[i]) != 0) return -1;
     }
+
+    return 0;
 }
 
 
@@ -360,12 +402,12 @@ void generateHFD(HashFile* h, const char* filename) {
 
 
 void closeFile(HashFile* h) {
+    if (!h) return;
+
     saveHeader(h);
 
-    generateHFD(h, "saida.hfd");
-
-    fclose(h->hf);
-    fclose(h->hfc);
+    if (h->hf) fclose(h->hf);
+    if (h->hfc) fclose(h->hfc);
 
     free(h->directory);
     free(h);
