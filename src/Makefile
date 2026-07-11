@@ -1,17 +1,21 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -fstack-protector-all
 
-SRC = hashfile.c svg.c geo.c quadra.c pessoa.c pm.c qry.c
+SRC = main.c hashfile.c svg.c geo.c quadra.c pessoa.c pm.c qry.c
+HDR = ../include/hashfile.h ../include/svg.h ../include/geo.h \
+      ../include/quadra.h ../include/pessoa.h ../include/pm.h \
+      ../include/qry.h
+
 UNITY = ../Unity/unity.c
 INCLUDE = -I../include -I../Unity
 
 all: ted
 
-ted:
-	$(CC) $(CFLAGS) main.c $(SRC) $(INCLUDE) -o ted
+ted: $(SRC) $(HDR)
+	$(CC) $(CFLAGS) $(SRC) $(INCLUDE) -o ted
 
-run:
-	./ted -e ../tests -f cidade.geo -pm pessoas.pm -q comandos.qry -o ../saida
+run: ted
+	./ted -e ../tests -f cidade.geo -pm pessoas.pm -q comandos.qry -o ../o
 
 tstall:
 	cd .. && $(CC) $(CFLAGS) tests/test_hashfile.c src/hashfile.c Unity/unity.c -Iinclude -IUnity -o test_hash && ./test_hash
@@ -34,7 +38,6 @@ tstall-win:
 clean:
 	rm -f ted ted.exe *.hf *.hfc *.svg *.hfd *.dat
 	rm -f ../test_hash ../test_svg ../test_pessoa ../test_pm ../test_quadra ../test_geo ../test_qry
-	rm -rf ../saida
 	rm -rf ../o
 
 clean-win:
@@ -42,6 +45,5 @@ clean-win:
 	-del /Q ..\*.hf ..\*.hfc ..\*.svg ..\*.hfd ..\*.dat 2>nul
 	-del /Q ..\test_hash.exe ..\test_svg.exe ..\test_pessoa.exe ..\test_pm.exe ..\test_quadra.exe ..\test_geo.exe ..\test_qry.exe 2>nul
 	-del /Q ..\o\*.svg ..\o\*.txt ..\o\*.hfd ..\o\*.hf ..\o\*.hfc ..\o\*.dot 2>nul
-	-del /Q ..\saida\*.svg ..\saida\*.txt ..\saida\*.hfd ..\saida\*.hf ..\saida\*.hfc ..\saida\*.dot 2>nul
 
 tudo: ted run tstall
