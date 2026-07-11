@@ -266,7 +266,7 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
                     if (pessoaTemMoradia(p)) {
                         fprintf(txt, "Endereço: %s/%c/%d/%s\n\n",getCepMoradia(p),getFaceMoradia(p),getNumMoradia(p),getCompMoradia(p));
                     } else {
-                        printf(txt, "Sem-teto\n\n");
+                        fprintf(txt, "Sem-teto\n\n");
                     }
                 }
             free(p);
