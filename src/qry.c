@@ -246,23 +246,33 @@ void processQry( const char* qryPath, HashFile* pessoasHash, HashFile* quadrasHa
 
         else if (strcmp(comando, "h?") == 0) {
             char cpf[20];
-            fscanf(qry, "%s", cpf);
+            fscanf(qry, "%19s", cpf);
 
             Pessoa* p = malloc(getPessoaSize());
 
-            if (p && searchRegister( pessoasHash, cpf, p) == 0) {
-                fprintf(txt, "Nome: %s %s\n", getNome(p), getSobrenome(p));
-                fprintf(txt, "CPF: %s \n", getCpf(p));
-                fprintf(txt, "Sexo: %c\n", getSexo(p));
-                fprintf(txt, "Nascimento: %s\n", getNasc(p));
+            if (!p) {
+                fprintf(txt, "Erro ao alocar pessoa para consulta h?: %s\n\n", cpf);
             }
-            if (pessoaTemMoradia(p)) {
-                fprintf(txt, "Endereço: %s/%c/%d/%s\n\n", getCepMoradia(p), getFaceMoradia(p), getNumMoradia(p), getCompMoradia(p));
-            } else {
-            fprintf(txt, "Sem-teto\n\n");
-            }
+            else {
+                if (searchRegister(pessoasHash, cpf, p) != 0) {
+                    fprintf(txt, "Pessoa nao encontrada: %s\n\n", cpf);
+                }
+                else {
+                    fprintf(txt, "Nome: %s %s\n", getNome(p), getSobrenome(p));
+                    fprintf(txt, "CPF: %s \n", getCpf(p));
+                    fprintf(txt, "Sexo: %c\n", getSexo(p));
+                    fprintf(txt, "Nascimento: %s\n", getNasc(p));
+
+                    if (pessoaTemMoradia(p)) {
+                        fprintf(txt, "Endereço: %s/%c/%d/%s\n\n",getCepMoradia(p),getFaceMoradia(p),getNumMoradia(p),getCompMoradia(p));
+                    } else {
+                        printf(txt, "Sem-teto\n\n");
+                    }
+                }
             free(p);
         }
+    }
+
 
         else if (strcmp(comando, "nasc") == 0) {
             char cpf[20], nome[50], sobrenome[50], nasc[11];
