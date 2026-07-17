@@ -33,7 +33,7 @@ static long writeBucket(HashFile* h, Bucket* b);
 static int readBucket(HashFile* h, long pos, Bucket* b);
 static int saveHeader(HashFile* h);
 static int doubleDirectory(HashFile* h);
-static int splitBucket(HashFile* h, int index);
+void splitBucket(HashFile* h, int index);
 
 static int hashString(const char* key, int depth) {
     unsigned long h = 5381;
@@ -247,21 +247,19 @@ int insertRegister(HashFile* h, const char* key, const void* record) {
         return 0;
     }
 
-    if (splitBucket(h, index) != 0) {
-        return -1;
-    }
+    splitBucket(h, index);
     return insertRegister(h, key, record);
 }
 
 
-static int splitBucket(HashFile* h, int index) {
+void splitBucket(HashFile* h, int index) {
     long oldPos = h->directory[index];
 
     Bucket old;
-    if (readBucket(h, oldPos, &old) != 0) return -1;
+    if (readBucket(h, oldPos, &old) != 0) return;
 
     if (old.localDepth == h->globalDepth) {
-        if (doubleDirectory(h) != 0) return -1;
+        if (doubleDirectory(h) != 0) return;
     }
 
     Bucket newB = createBucket(old.localDepth + 1);
@@ -295,10 +293,8 @@ static int splitBucket(HashFile* h, int index) {
 
     // e reinsere 
     for (int i = 0; i < count; i++) {
-        if (insertRegister(h, tempKeys[i], tempRecords[i]) != 0) return -1;
+        if (insertRegister(h, tempKeys[i], tempRecords[i]) != 0) return;
     }
-
-    return 0;
 }
 
 
